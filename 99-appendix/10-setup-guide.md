@@ -1,11 +1,11 @@
 ---
 covers: How to add the documentation framework to your project as a reusable skill directory.
-concepts: [setup, installation, symlink, initialization]
+concepts: [setup, installation, git-submodule, symlink, initialization]
 ---
 
 # Setup Guide
 
-Keep this repository as the source of truth, symlink it into each project as a skill directory, run `/docs:init`, and start documenting.
+Keep this repository as the source of truth, mount it into each project as a skill directory, run `/docs:init`, and start documenting.
 
 ---
 
@@ -13,23 +13,39 @@ Keep this repository as the source of truth, symlink it into each project as a s
 
 - A project you want to document
 - Claude Code or Codex skills support
-- A local checkout of this `docs-framework` repository
+- Git submodule support, or a local checkout of this `docs-framework` repository
 
-## Installation: Symlink the Skill
+## Installation: Codex Submodule
 
-Symlink the repository root into the skill directory your agent reads. The repository root is the skill directory; it contains `SKILL.md`.
+Use a Git submodule when the project should carry a pinned docs-framework version. The repository root is the skill directory; it contains `SKILL.md`.
 
-### Step 1: Link the Framework
+### Step 1: Add the Framework
 
 From your project root:
 
 ```
 mkdir -p .claude/skills .codex/skills
-ln -s /absolute/path/to/docs-framework .claude/skills/docs-framework
-ln -s /absolute/path/to/docs-framework .codex/skills/docs-framework
+git submodule add https://github.com/Codecaine-AI/docs-framework.git .codex/skills/docs-framework
+ln -s ../../.codex/skills/docs-framework .claude/skills/docs-framework
 ```
 
-Use the `.claude` link for Claude Code commands and the `.codex` link for Codex skills. If a project only uses one agent, create only that link.
+Use `.codex/skills/docs-framework` as the pinned submodule. Use `.claude/skills/docs-framework` as a symlink to the same checkout so Claude Code commands read the identical framework. If a project only uses one agent, create only that mount.
+
+After cloning a project that uses this setup, initialize the submodule:
+
+```
+git submodule update --init --recursive .codex/skills/docs-framework
+```
+
+### Symlink-Only Alternative
+
+For a local-only project, symlink an existing checkout instead of adding a submodule:
+
+```
+mkdir -p .claude/skills .codex/skills
+ln -s /absolute/path/to/docs-framework .codex/skills/docs-framework
+ln -s ../../.codex/skills/docs-framework .claude/skills/docs-framework
+```
 
 ### Step 2: Initialize Your Documentation
 
@@ -92,16 +108,17 @@ your-project/
 │   ├── 10-system-design/    # Product structure and behavior
 │   └── 20-implementation/   # Code-specific mechanics
 ├── .claude/
-│   └── skills/docs-framework -> /absolute/path/to/docs-framework
+│   └── skills/docs-framework -> ../../.codex/skills/docs-framework
 └── .codex/
-    └── skills/docs-framework -> /absolute/path/to/docs-framework
+    └── skills/docs-framework/          # docs-framework submodule
 ```
 
 ## One Framework, One Output
 
 | Directory | Contains | Managed By |
 |-----------|----------|------------|
-| `.claude/skills/docs-framework/` or `.codex/skills/docs-framework/` | symlink to documentation framework (skill, templates, workflows, rules) | docs-framework project |
+| `.codex/skills/docs-framework/` | docs-framework submodule (skill, templates, workflows, rules) | docs-framework project |
+| `.claude/skills/docs-framework/` | symlink to the Codex submodule | docs-framework project |
 | `docs/` | YOUR project documentation | You |
 
 **Important:** Framework edits should happen in the `docs-framework` repo. All project documentation goes in `docs/`.
@@ -129,7 +146,11 @@ docs/
 
 ## Updating the Framework
 
-To update the framework, commit changes in the `docs-framework` repo and pull that repo in any project that symlinks to it.
+To update the framework, commit changes in the `docs-framework` repo, then update the submodule in each consuming project:
+
+```
+git submodule update --remote .codex/skills/docs-framework
+```
 
 ### Spectre Backend Snapshot
 
