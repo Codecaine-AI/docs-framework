@@ -160,7 +160,7 @@ Spectre also embeds this skill in its backend skill library so agents can use `s
 bun run sync:docs-framework
 ```
 
-That command copies markdown from the linked skill repo into `apps/backend/src/skill-library/skills/docs-framework/` and regenerates the backend `index.ts` wrapper.
+That command copies the backend registry subset (`SKILL.md`, `00-reference/`, `10-cookbook/`, `20-standards/`, and `40-templates/`) from the linked skill repo into `apps/backend/src/skill-library/skills/docs-framework/` and regenerates the backend `index.ts` wrapper.
 
 ## Available Commands
 
