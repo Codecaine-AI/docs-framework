@@ -3,12 +3,11 @@ import * as canvasEditorNodes from "../components/canvas/editor-nodes";
 import * as codeEditorNodes from "../components/code/editor-nodes";
 import * as fileTreeEditorNodes from "../components/file-tree/editor-nodes";
 import * as interactionSurfaceEditorNodes from "../components/interaction-surface/editor-nodes";
-import * as mermaidEditorNodes from "../components/mermaid/editor-nodes";
 import * as richTextEditorNodes from "../components/rich-text/editor-nodes";
 import * as sequenceEditorNodes from "../components/sequence/editor-nodes";
 import * as stateShapeEditorNodes from "../components/state-shape/editor-nodes";
 import * as structuredTableEditorNodes from "../components/structured-table/editor-nodes";
-import * as waterfallEditorNodes from "../components/waterfall/editor-nodes";
+import * as processOutlineEditorNodes from "../components/process-outline/editor-nodes";
 import {
   ATOM_BLOCK_NODES,
   BLOCK_TYPE_TO_NODE_TYPE,
@@ -19,14 +18,13 @@ import {
 const componentNodeModules = [
   richTextEditorNodes,
   codeEditorNodes,
-  mermaidEditorNodes,
   fileTreeEditorNodes,
   structuredTableEditorNodes,
   interactionSurfaceEditorNodes,
   stateShapeEditorNodes,
   canvasEditorNodes,
   sequenceEditorNodes,
-  waterfallEditorNodes,
+  processOutlineEditorNodes,
 ];
 
 describe("component editor nodes", () => {
@@ -50,8 +48,7 @@ describe("component editor nodes", () => {
       "docStructuredTable",
       "docInteractionSurface",
       "docStateShape",
-      "docMermaid",
-      "docWaterfall",
+      "docProcessOutline",
     ]);
   });
 
@@ -79,8 +76,7 @@ describe("component editor nodes", () => {
       "structured-table": "docStructuredTable",
       "interaction-surface": "docInteractionSurface",
       "state-shape": "docStateShape",
-      mermaid: "docMermaid",
-      waterfall: "docWaterfall",
+      "process-outline": "docProcessOutline",
     });
 
     for (const node of componentNodes) {

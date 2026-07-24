@@ -26,6 +26,11 @@ const ACTION_KEYS = [
   "interaction-surface.addOperation",
   "interaction-surface.removeOperation",
   "interaction-surface.updateOperation",
+  "process-outline.insertStep",
+  "process-outline.moveStep",
+  "process-outline.removeStep",
+  "process-outline.setStepText",
+  "process-outline.setSteps",
   "sequence.setProgram",
   "sequence.setStyle",
   "sequence.setTitle",
@@ -38,11 +43,6 @@ const ACTION_KEYS = [
   "structured-table.removeColumn",
   "structured-table.removeRow",
   "structured-table.updateCell",
-  "waterfall.insertStep",
-  "waterfall.moveStep",
-  "waterfall.removeStep",
-  "waterfall.setStepText",
-  "waterfall.setSteps",
 ] as const;
 
 function closedState() {
@@ -84,7 +84,7 @@ function syntheticAction(
 
 describe("component registry", () => {
   it("imports ../index with a healthy registry", () => {
-    expect(ALL_COMPONENTS).toHaveLength(10);
+    expect(ALL_COMPONENTS).toHaveLength(9);
     expect(collectRegistryIssues(ALL_COMPONENTS)).toEqual([]);
   });
 

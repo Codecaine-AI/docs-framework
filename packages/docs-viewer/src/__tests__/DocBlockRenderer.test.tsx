@@ -49,8 +49,8 @@ describe("DocBlockRenderer", () => {
   it("fixture is schema-valid and covers its established v1 block types", () => {
     const doc = loadFixture();
     const blockTypes = new Set(Object.values(doc.blocks).map((block) => block.type));
-    // waterfall stays out of the fixture until the corpus/goldens phase adds it; remove this filter then.
-    for (const blockType of DOC_BLOCK_TYPES.filter((type) => type !== "waterfall")) {
+    // process-outline stays out of the fixture until the corpus/goldens phase adds it; remove this filter then.
+    for (const blockType of DOC_BLOCK_TYPES.filter((type) => type !== "process-outline")) {
       expect(blockTypes.has(blockType)).toBe(true);
     }
   });
@@ -144,9 +144,6 @@ describe("DocBlockRenderer", () => {
       document.querySelector('[data-interaction-operation="file-tree.addEntry"]'),
     ).toBeTruthy();
     expect(screen.getByText("Append a path entry to the tree")).toBeTruthy();
-
-    // Parse-reuse structured block: the mermaid wrapper.
-    expect(document.querySelector('[data-doc-block="mermaid"]')).toBeTruthy();
 
     // Canvas embed goes through the injected slot with src + view.
     const canvas = screen.getByTestId("fake-canvas-embed");

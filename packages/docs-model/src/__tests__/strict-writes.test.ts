@@ -23,7 +23,12 @@ const REPRESENTATIVES: Representative[] = [
   {
     type: "file-tree",
     props: { entries: [{ path: "src/main.ts" }] },
-    conformingPatch: { title: "Source files" },
+    conformingPatch: {
+      entries: [
+        { path: "src/main.ts" },
+        { path: "src/index.ts", change: "added" },
+      ],
+    },
     wrongPatch: { entries: "src/main.ts" },
     wrongPath: "$.op.props.entries",
   },
@@ -42,11 +47,13 @@ const REPRESENTATIVES: Representative[] = [
     wrongPath: "$.op.props.canvasId",
   },
   {
-    type: "mermaid",
-    props: { title: "Flow" },
-    conformingPatch: { diagramType: "flowchart" },
-    wrongPatch: { title: 42 },
-    wrongPath: "$.op.props.title",
+    type: "process-outline",
+    props: { steps: [{ text: "Draft" }] },
+    conformingPatch: {
+      steps: [{ text: "Draft" }, { text: "Review", kind: "note" }],
+    },
+    wrongPatch: { steps: "Draft" },
+    wrongPath: "$.op.props.steps",
   },
 ];
 

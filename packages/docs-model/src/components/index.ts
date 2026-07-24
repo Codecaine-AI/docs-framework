@@ -6,12 +6,11 @@ import { canvasComponent } from "./canvas";
 import { codeComponent } from "./code";
 import { fileTreeComponent } from "./file-tree";
 import { interactionSurfaceComponent } from "./interaction-surface";
-import { mermaidComponent } from "./mermaid";
 import { richTextComponent } from "./rich-text";
 import { sequenceComponent } from "./sequence";
 import { stateShapeComponent } from "./state-shape";
 import { structuredTableComponent } from "./structured-table";
-import { waterfallComponent } from "./waterfall";
+import { processOutlineComponent } from "./process-outline";
 import type {
   BlockStateDefinition,
   ComponentAction,
@@ -27,7 +26,6 @@ export * from "./validate";
 
 export { richTextComponent } from "./rich-text";
 export { codeComponent } from "./code";
-export { mermaidComponent } from "./mermaid";
 export { fileTreeComponent } from "./file-tree";
 export { structuredTableComponent } from "./structured-table";
 export {
@@ -54,26 +52,25 @@ export { printJsonLines } from "./shared/json-lines";
 export type { JsonLineRange, JsonLinesResult } from "./shared/json-lines";
 export { canvasComponent } from "./canvas";
 export { sequenceComponent } from "./sequence";
-export { waterfallComponent } from "./waterfall";
+export { processOutlineComponent } from "./process-outline";
 export {
-  parseWaterfall,
-  readWaterfallStepTree,
-  readWaterfallSteps,
-  serializeWaterfall,
-} from "./waterfall";
-export type { WaterfallNode, WaterfallStep } from "./waterfall";
+  parseProcessOutline,
+  readProcessOutlineStepTree,
+  readProcessOutlineSteps,
+  serializeProcessOutline,
+} from "./process-outline";
+export type { ProcessOutlineNode, ProcessOutlineStep } from "./process-outline";
 
 export const ALL_COMPONENTS: readonly ComponentBundle[] = [
   richTextComponent,
   codeComponent,
-  mermaidComponent,
   fileTreeComponent,
   structuredTableComponent,
   interactionSurfaceComponent,
   stateShapeComponent,
   canvasComponent,
   sequenceComponent,
-  waterfallComponent,
+  processOutlineComponent,
 ];
 
 export const COMPONENT_BY_TYPE: ReadonlyMap<DocBlockType, ComponentBundle> = new Map(

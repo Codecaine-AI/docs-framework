@@ -1,0 +1,2388 @@
+{
+  "schemaVersion": 1,
+  "id": "10-system-design-10-block-vocabulary-90-process-outline",
+  "title": "process outline",
+  "root": "b-90-process-outline-root",
+  "blocks": {
+    "b-90-process-outline-root": {
+      "id": "b-90-process-outline-root",
+      "type": "paragraph",
+      "props": {},
+      "children": [
+        "b-90-process-outline-lead",
+        "b-90-process-outline-lead-model",
+        "b-90-process-outline-lead-viewer",
+        "b-90-process-outline-split-intro",
+        "b-90-process-outline-split-canvas",
+        "b-90-process-outline-split-sequence",
+        "b-90-process-outline-split-process-outline",
+        "b-90-process-outline-split-tree",
+        "b-90-process-outline-example-h",
+        "b-90-process-outline-example-intro",
+        "b-90-process-outline-example-block",
+        "b-90-process-outline-notation-h",
+        "b-90-process-outline-notation-intro",
+        "b-90-process-outline-not-root",
+        "b-90-process-outline-not-step",
+        "b-90-process-outline-not-indent",
+        "b-90-process-outline-not-code",
+        "b-90-process-outline-not-note",
+        "b-90-process-outline-not-blank",
+        "b-90-process-outline-state-h",
+        "b-90-process-outline-state-intro",
+        "b-90-process-outline-state-shape",
+        "b-90-process-outline-state-b0",
+        "b-90-process-outline-state-b1",
+        "b-90-process-outline-state-bomit",
+        "b-90-process-outline-state-bcheck",
+        "b-90-process-outline-state-b2",
+        "b-90-process-outline-state-btext",
+        "b-90-process-outline-state-b3",
+        "b-90-process-outline-actions-h",
+        "b-90-process-outline-actions-intro",
+        "b-90-process-outline-actions-surface",
+        "b-90-process-outline-actions-b0a",
+        "b-90-process-outline-actions-b0b",
+        "b-90-process-outline-actions-b1",
+        "b-90-process-outline-actions-b3",
+        "b-90-process-outline-actions-b4",
+        "b-90-process-outline-actions-b5",
+        "b-90-process-outline-docrender-h",
+        "b-90-process-outline-dr-intro",
+        "b-90-process-outline-dr-loop",
+        "b-90-process-outline-dr-rail",
+        "b-90-process-outline-dr-weight",
+        "b-90-process-outline-dr-note",
+        "b-90-process-outline-dr-editor",
+        "b-90-process-outline-agentrender-h",
+        "b-90-process-outline-ar-intro",
+        "b-90-process-outline-ar-code",
+        "b-90-process-outline-ar-b1",
+        "b-90-process-outline-ar-b2",
+        "b-90-process-outline-ar-b3",
+        "b-90-process-outline-theme-h",
+        "b-90-process-outline-theme-intro",
+        "b-90-process-outline-theme-rail",
+        "b-90-process-outline-theme-deep",
+        "b-90-process-outline-theme-opaque",
+        "b-90-process-outline-theme-table",
+        "b-90-process-outline-adapter-h",
+        "b-90-process-outline-adapter-p1",
+        "b-90-process-outline-adapter-b0",
+        "b-90-process-outline-adapter-b1",
+        "b-90-process-outline-adapter-b2",
+        "b-90-process-outline-adapter-b3"
+      ]
+    },
+    "b-90-process-outline-lead": {
+      "id": "b-90-process-outline-lead",
+      "type": "paragraph",
+      "props": {},
+      "text": [
+        {
+          "insert": "The Process Outline component owns one type of the "
+        },
+        {
+          "insert": "Block vocabulary",
+          "attributes": {
+            "reference": {
+              "kind": "doc",
+              "path": "10-system-design/40-block-vocabulary"
+            }
+          }
+        },
+        {
+          "insert": ": "
+        },
+        {
+          "insert": "process-outline",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", the ordered process-outline block — the virtual form of a nested procedural outline drawn on a connected rail. A block stores a typed recursive step tree in "
+        },
+        {
+          "insert": "steps",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": "; process-outline notation is the text form of that tree — "
+        },
+        {
+          "insert": "serializeProcessOutline",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " writes it for the agent surface, "
+        },
+        {
+          "insert": "parseProcessOutline",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " turns it back into steps on bulk import."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-lead-model": {
+      "id": "b-90-process-outline-lead-model",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Model code: "
+        },
+        {
+          "insert": "packages/docs-model/src/components/process-outline/",
+          "attributes": {
+            "reference": {
+              "kind": "source",
+              "path": "packages/docs-model/src/components/process-outline"
+            }
+          }
+        },
+        {
+          "insert": "."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-lead-viewer": {
+      "id": "b-90-process-outline-lead-viewer",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Doc renderer: "
+        },
+        {
+          "insert": "packages/docs-viewer/src/components/process-outline/",
+          "attributes": {
+            "reference": {
+              "kind": "source",
+              "path": "packages/docs-viewer/src/components/process-outline"
+            }
+          }
+        },
+        {
+          "insert": "."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-split-intro": {
+      "id": "b-90-process-outline-split-intro",
+      "type": "paragraph",
+      "props": {},
+      "text": [
+        {
+          "insert": "It is the vocabulary's third diagram type, and the three split by question:"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-split-canvas": {
+      "id": "b-90-process-outline-split-canvas",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "canvas",
+          "attributes": {
+            "reference": {
+              "kind": "doc",
+              "path": "10-system-design/40-block-vocabulary/80-canvas"
+            }
+          }
+        }
+      ],
+      "children": [
+        "b-90-process-outline-split-canvas-sub"
+      ]
+    },
+    "b-90-process-outline-split-canvas-sub": {
+      "id": "b-90-process-outline-split-canvas-sub",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "How things relate — spatial boards of shapes, links, and embeds."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-split-sequence": {
+      "id": "b-90-process-outline-split-sequence",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "sequence",
+          "attributes": {
+            "reference": {
+              "kind": "doc",
+              "path": "10-system-design/40-block-vocabulary/70-sequence"
+            }
+          }
+        }
+      ],
+      "children": [
+        "b-90-process-outline-split-sequence-sub"
+      ]
+    },
+    "b-90-process-outline-split-sequence-sub": {
+      "id": "b-90-process-outline-split-sequence-sub",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Exact exchanges — who sends what to whom, in what order."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-split-process-outline": {
+      "id": "b-90-process-outline-split-process-outline",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "process-outline",
+          "attributes": {
+            "code": true
+          }
+        }
+      ],
+      "children": [
+        "b-90-process-outline-split-process-outline-sub"
+      ]
+    },
+    "b-90-process-outline-split-process-outline-sub": {
+      "id": "b-90-process-outline-split-process-outline-sub",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "How a process flows end to end — arrow steps, nested sublayers, and clarification notes on one rail."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-split-tree": {
+      "id": "b-90-process-outline-split-tree",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "file-tree",
+          "attributes": {
+            "reference": {
+              "kind": "doc",
+              "path": "10-system-design/40-block-vocabulary/40-file-tree"
+            }
+          }
+        }
+      ],
+      "children": [
+        "b-90-process-outline-split-tree-sub"
+      ]
+    },
+    "b-90-process-outline-split-tree-sub": {
+      "id": "b-90-process-outline-split-tree-sub",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Not a diagram type, but the adjacent call: reach for it when the nested structure is files, not steps."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-example-h": {
+      "id": "b-90-process-outline-example-h",
+      "type": "heading",
+      "props": {
+        "level": 2
+      },
+      "text": [
+        {
+          "insert": "Example"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-example-intro": {
+      "id": "b-90-process-outline-example-intro",
+      "type": "paragraph",
+      "props": {},
+      "text": [
+        {
+          "insert": "A live block — the run-mode loop of the Melee decomp harness: one root, four arrow steps, nested sublayers, and two clarification notes that render as one bulleted card."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-example-block": {
+      "id": "b-90-process-outline-example-block",
+      "type": "process-outline",
+      "props": {
+        "steps": [
+          {
+            "text": "Run mode",
+            "steps": [
+              {
+                "text": "Get epoch-size candidates from the ranked worker system",
+                "steps": [
+                  {
+                    "text": "Exclude locked, cooled-down, or unschedulable work"
+                  },
+                  {
+                    "text": "Keep enough ready work to feed the worker pool"
+                  }
+                ]
+              },
+              {
+                "text": "Drain the epoch with workers",
+                "steps": [
+                  {
+                    "text": "Spawn workers through the kernel until the epoch is drained"
+                  },
+                  {
+                    "text": "Each worker gets its own isolated worktree"
+                  },
+                  {
+                    "text": "workers produce tentative evidence",
+                    "kind": "note"
+                  },
+                  {
+                    "text": "the epoch boundary makes the map authoritative again",
+                    "kind": "note"
+                  }
+                ]
+              },
+              {
+                "text": "Finish the epoch",
+                "steps": [
+                  {
+                    "text": "Run the full build"
+                  },
+                  {
+                    "text": "Move every item to its authoritative lane"
+                  }
+                ]
+              },
+              {
+                "text": "Continue",
+                "steps": [
+                  {
+                    "text": "Repeat until the operator stops or the run bound is reached"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "children": []
+    },
+    "b-90-process-outline-notation-h": {
+      "id": "b-90-process-outline-notation-h",
+      "type": "heading",
+      "props": {
+        "level": 2
+      },
+      "text": [
+        {
+          "insert": "Notation"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-notation-intro": {
+      "id": "b-90-process-outline-notation-intro",
+      "type": "paragraph",
+      "props": {},
+      "text": [
+        {
+          "insert": "Process-outline notation is the block's plain-text form: "
+        },
+        {
+          "insert": "serializeProcessOutline",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " writes it from the step tree and "
+        },
+        {
+          "insert": "parseProcessOutline",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " parses it on bulk import, both in "
+        },
+        {
+          "insert": "packages/docs-model/src/components/process-outline/lib.ts",
+          "attributes": {
+            "reference": {
+              "kind": "source",
+              "path": "packages/docs-model/src/components/process-outline/lib.ts"
+            }
+          }
+        },
+        {
+          "insert": ". Six rules cover all of it:"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-not-root": {
+      "id": "b-90-process-outline-not-root",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Root line"
+        }
+      ],
+      "children": [
+        "b-90-process-outline-not-root-1"
+      ]
+    },
+    "b-90-process-outline-not-root-1": {
+      "id": "b-90-process-outline-not-root-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "A line with no arrow prefix starts a flow; the parser returns a forest, so one block can carry multiple roots."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-not-step": {
+      "id": "b-90-process-outline-not-step",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "-> step",
+          "attributes": {
+            "code": true
+          }
+        }
+      ],
+      "children": [
+        "b-90-process-outline-not-step-1"
+      ]
+    },
+    "b-90-process-outline-not-step-1": {
+      "id": "b-90-process-outline-not-step-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "An arrow line is one step of the flow."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-not-indent": {
+      "id": "b-90-process-outline-not-indent",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Indentation = sublayers"
+        }
+      ],
+      "children": [
+        "b-90-process-outline-not-indent-1",
+        "b-90-process-outline-not-indent-2",
+        "pm-mrwee4hr-1-fhp9oc"
+      ]
+    },
+    "b-90-process-outline-not-indent-1": {
+      "id": "b-90-process-outline-not-indent-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "A line's depth is the rank of its indent width among the distinct widths seen so far, sorted ascending."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-not-indent-2": {
+      "id": "b-90-process-outline-not-indent-2",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Irregular indentation still nests, and a depth already assigned never changes when a new width appears later."
+        }
+      ],
+      "children": []
+    },
+    "pm-mrwee4hr-1-fhp9oc": {
+      "id": "pm-mrwee4hr-1-fhp9oc",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "/"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-not-code": {
+      "id": "b-90-process-outline-not-code",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Backticks"
+        }
+      ],
+      "children": [
+        "b-90-process-outline-not-code-1"
+      ]
+    },
+    "b-90-process-outline-not-code-1": {
+      "id": "b-90-process-outline-not-code-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "A backtick-wrapped span is a code value; the render gives it a code chip."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-not-note": {
+      "id": "b-90-process-outline-not-note",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "> note",
+          "attributes": {
+            "code": true
+          }
+        }
+      ],
+      "children": [
+        "b-90-process-outline-not-note-1",
+        "b-90-process-outline-not-note-2"
+      ]
+    },
+    "b-90-process-outline-not-note-1": {
+      "id": "b-90-process-outline-not-note-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "A "
+        },
+        {
+          "insert": ">",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " line is a clarification note on the step above it, not a step of its own."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-not-note-2": {
+      "id": "b-90-process-outline-not-note-2",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Consecutive "
+        },
+        {
+          "insert": ">",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " lines group into one note card, rendered as bullets."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-not-blank": {
+      "id": "b-90-process-outline-not-blank",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Blank lines are ignored."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-state-h": {
+      "id": "b-90-process-outline-state-h",
+      "type": "heading",
+      "props": {
+        "level": 2
+      },
+      "text": [
+        {
+          "insert": "State Schema"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-state-intro": {
+      "id": "b-90-process-outline-state-intro",
+      "type": "paragraph",
+      "props": {},
+      "text": [
+        {
+          "insert": "The "
+        },
+        {
+          "insert": "State schema",
+          "attributes": {
+            "reference": {
+              "kind": "doc",
+              "path": "10-system-design/30-data-model/20-block-design/10-state-schema"
+            }
+          }
+        },
+        {
+          "insert": " contract element — all state lives in typed props:"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-state-shape": {
+      "id": "b-90-process-outline-state-shape",
+      "type": "state-shape",
+      "props": {
+        "example": "{\n  \"steps\": [\n    {\n      \"text\": \"Drain the epoch with workers\",\n      \"steps\": [\n        {\n          \"text\": \"Each worker gets its own isolated worktree\"\n        },\n        {\n          \"text\": \"workers produce tentative evidence\",\n          \"kind\": \"note\"\n        }\n      ]\n    }\n  ]\n}",
+        "fields": [
+          {
+            "name": "steps",
+            "type": "ProcessOutlineStep[]",
+            "description": "Recursive step tree — the block's entire state.",
+            "fields": [
+              {
+                "name": "text",
+                "type": "string",
+                "description": "Step text; backticks mark code values."
+              },
+              {
+                "name": "kind",
+                "type": "\"step\" | \"note\"",
+                "required": false,
+                "description": "\"note\" marks a clarification leaf; omitted reads as \"step\"."
+              },
+              {
+                "name": "steps",
+                "type": "ProcessOutlineStep[]",
+                "required": false,
+                "description": "Nested substeps; notes never carry them."
+              }
+            ]
+          }
+        ],
+        "name": "ProcessOutlineState",
+        "source": {
+          "path": "packages/docs-model/src/components/process-outline/state.ts",
+          "symbol": "ProcessOutlineState"
+        }
+      },
+      "children": []
+    },
+    "b-90-process-outline-state-b0": {
+      "id": "b-90-process-outline-state-b0",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "ProcessOutlineState",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " in "
+        },
+        {
+          "insert": "packages/docs-model/src/components/process-outline/state.ts",
+          "attributes": {
+            "reference": {
+              "kind": "source",
+              "path": "packages/docs-model/src/components/process-outline/state.ts"
+            }
+          }
+        },
+        {
+          "insert": " defines the closed one-prop schema; "
+        },
+        {
+          "insert": "additionalProperties: false",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " rejects anything else."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-state-b1": {
+      "id": "b-90-process-outline-state-b1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "steps",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " is the whole state: a recursive "
+        },
+        {
+          "insert": "ProcessOutlineStep",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " tree — "
+        },
+        {
+          "insert": "{ text, kind?, steps? }",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", where "
+        },
+        {
+          "insert": "kind",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " is "
+        },
+        {
+          "insert": "\"step\"",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " or "
+        },
+        {
+          "insert": "\"note\"",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " and omitted reads as "
+        },
+        {
+          "insert": "\"step\"",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": "."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-state-bomit": {
+      "id": "b-90-process-outline-state-bomit",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Two omissions are deliberate: no title — a heading block above the process outline carries one — and no stored text form — process-outline notation exists only for import and the agent projection."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-state-bcheck": {
+      "id": "b-90-process-outline-state-bcheck",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "check()",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " rejects a "
+        },
+        {
+          "insert": "kind: \"note\"",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " step that carries child steps — notes are leaves."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-state-b2": {
+      "id": "b-90-process-outline-state-b2",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "The block stores structure, not layout: no depths, no geometry enters the doc — depth derives from nesting at read time."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-state-btext": {
+      "id": "b-90-process-outline-state-btext",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "The type carries no delta text ("
+        },
+        {
+          "insert": "carriesText: false",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ")."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-state-b3": {
+      "id": "b-90-process-outline-state-b3",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "readProcessOutlineStepTree",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " reads "
+        },
+        {
+          "insert": "steps",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " tolerantly — malformed entries are skipped, never thrown on."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-actions-h": {
+      "id": "b-90-process-outline-actions-h",
+      "type": "heading",
+      "props": {
+        "level": 2
+      },
+      "text": [
+        {
+          "insert": "Typed Actions"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-actions-intro": {
+      "id": "b-90-process-outline-actions-intro",
+      "type": "paragraph",
+      "props": {},
+      "text": [
+        {
+          "insert": "Five actions instantiate the "
+        },
+        {
+          "insert": "Typed actions",
+          "attributes": {
+            "reference": {
+              "kind": "doc",
+              "path": "10-system-design/30-data-model/20-block-design/20-typed-actions"
+            }
+          }
+        },
+        {
+          "insert": " contract element:"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-actions-surface": {
+      "id": "b-90-process-outline-actions-surface",
+      "type": "interaction-surface",
+      "props": {
+        "operations": [
+          {
+            "name": "process-outline.setSteps",
+            "description": "Bulk replace: swap the entire ordered step tree for the given steps — parse process-outline notation with parseProcessOutline to build the tree from text.",
+            "params": [
+              {
+                "name": "steps",
+                "type": "ProcessOutlineStep[]",
+                "required": true,
+                "description": "Complete replacement step tree; an empty array empties the process outline."
+              }
+            ],
+            "returns": "props patch: { steps }"
+          },
+          {
+            "name": "process-outline.insertStep",
+            "description": "Insert a step at an index path: the last element is the insert position among the addressed sibling list.",
+            "params": [
+              {
+                "name": "path",
+                "type": "number[]",
+                "required": true,
+                "description": "Index path; [i] inserts at position i among the roots, [a, ..., i] at position i under the step addressed by the prefix."
+              },
+              {
+                "name": "text",
+                "type": "string",
+                "required": true,
+                "description": "Step text; backticks mark code values."
+              },
+              {
+                "name": "kind",
+                "type": "\"step\" | \"note\"",
+                "required": false,
+                "description": "Step kind; \"note\" is a clarification leaf. Default \"step\"."
+              }
+            ],
+            "returns": "props patch: { steps }"
+          },
+          {
+            "name": "process-outline.setStepText",
+            "description": "Replace the text of the step at an index path.",
+            "params": [
+              {
+                "name": "path",
+                "type": "number[]",
+                "required": true,
+                "description": "Index path of the step, e.g. [0, 2] for the third child of the first root."
+              },
+              {
+                "name": "text",
+                "type": "string",
+                "required": true,
+                "description": "Replacement step text; backticks mark code values."
+              }
+            ],
+            "returns": "props patch: { steps }"
+          },
+          {
+            "name": "process-outline.removeStep",
+            "description": "Remove the step at an index path, together with its entire subtree.",
+            "params": [
+              {
+                "name": "path",
+                "type": "number[]",
+                "required": true,
+                "description": "Index path of the step to remove, e.g. [0, 2]."
+              }
+            ],
+            "returns": "props patch: { steps }"
+          },
+          {
+            "name": "process-outline.moveStep",
+            "description": "Move the step at from (with its subtree) to the insert position to — to is interpreted against the tree after the step is removed.",
+            "params": [
+              {
+                "name": "from",
+                "type": "number[]",
+                "required": true,
+                "description": "Index path of the step to move."
+              },
+              {
+                "name": "to",
+                "type": "number[]",
+                "required": true,
+                "description": "Insertion index path (last element = insert position), resolved after the step is detached."
+              }
+            ],
+            "returns": "props patch: { steps }"
+          }
+        ],
+        "title": "process-outline — actions"
+      },
+      "children": []
+    },
+    "b-90-process-outline-actions-b0a": {
+      "id": "b-90-process-outline-actions-b0a",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Each action is one file in "
+        },
+        {
+          "insert": "packages/docs-model/src/components/process-outline/actions/",
+          "attributes": {
+            "reference": {
+              "kind": "source",
+              "path": "packages/docs-model/src/components/process-outline/actions"
+            }
+          }
+        },
+        {
+          "insert": "."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-actions-b0b": {
+      "id": "b-90-process-outline-actions-b0b",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Params validate against the action's TypeBox schema before "
+        },
+        {
+          "insert": "apply()",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " runs; each returns a shallow props patch."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-actions-b1": {
+      "id": "b-90-process-outline-actions-b1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "process-outline.setSteps",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " is the bulk edit: it replaces the entire step tree in one validated call — an agent still edits by rewriting what it reads."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-actions-b3": {
+      "id": "b-90-process-outline-actions-b3",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "The four step actions address by index path: elements walk "
+        },
+        {
+          "insert": "steps",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " from the root — "
+        },
+        {
+          "insert": "[0, 2]",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " is the third child of the first root — and insert paths end with the insert position."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-actions-b4": {
+      "id": "b-90-process-outline-actions-b4",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "process-outline.moveStep",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " resolves "
+        },
+        {
+          "insert": "to",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " after the moved step is detached, so a move within one sibling list uses post-removal indices."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-actions-b5": {
+      "id": "b-90-process-outline-actions-b5",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Unresolvable paths, out-of-range insert positions, and inserts or moves under a note reject in the house pattern — "
+        },
+        {
+          "insert": "{ ok: false, issues }",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " — because notes are leaves."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-docrender-h": {
+      "id": "b-90-process-outline-docrender-h",
+      "type": "heading",
+      "props": {
+        "level": 2
+      },
+      "text": [
+        {
+          "insert": "Doc Renderer"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-intro": {
+      "id": "b-90-process-outline-dr-intro",
+      "type": "paragraph",
+      "props": {},
+      "text": [
+        {
+          "insert": "The "
+        },
+        {
+          "insert": "Doc renderer",
+          "attributes": {
+            "reference": {
+              "kind": "doc",
+              "path": "10-system-design/30-data-model/20-block-design/30-doc-renderer"
+            }
+          }
+        },
+        {
+          "insert": " contract element: "
+        },
+        {
+          "insert": "ProcessOutlineDocsBlock",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " in "
+        },
+        {
+          "insert": "packages/docs-viewer/src/components/process-outline/ProcessOutlineDocsBlock.tsx",
+          "attributes": {
+            "reference": {
+              "kind": "source",
+              "path": "packages/docs-viewer/src/components/process-outline/ProcessOutlineDocsBlock.tsx"
+            }
+          }
+        },
+        {
+          "insert": ", wired through the descriptor in the same folder:"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-loop": {
+      "id": "b-90-process-outline-dr-loop",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Render loop"
+        }
+      ],
+      "children": [
+        "b-90-process-outline-dr-loop-1",
+        "b-90-process-outline-dr-loop-2",
+        "b-90-process-outline-dr-empty-1"
+      ]
+    },
+    "b-90-process-outline-dr-loop-1": {
+      "id": "b-90-process-outline-dr-loop-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "readProcessOutlineSteps",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " derives depth-computed nodes from the step tree; the viewer never parses, and the forest draws as monospace text."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-loop-2": {
+      "id": "b-90-process-outline-dr-loop-2",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "The stylesheet injects once per document; the block scrolls in its own overflow container at a 640 px minimum width."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-empty-1": {
+      "id": "b-90-process-outline-dr-empty-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "A block with no steps renders the placeholder line "
+        },
+        {
+          "insert": "empty process outline — no steps yet",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": "."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-rail": {
+      "id": "b-90-process-outline-dr-rail",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "One ink, one rail"
+        }
+      ],
+      "children": [
+        "b-90-process-outline-dr-rail-1",
+        "b-90-process-outline-dr-rail-geom",
+        "b-90-process-outline-dr-rail-run",
+        "b-90-process-outline-dr-rail-tokens",
+        "b-90-process-outline-dr-rail-2"
+      ]
+    },
+    "b-90-process-outline-dr-rail-1": {
+      "id": "b-90-process-outline-dr-rail-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Every flow is free text on one connected rail: a trunk drops from each parent, turns a rounded elbow into each child, and runs into an open-V arrowhead whose tip lands just before the text."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-rail-geom": {
+      "id": "b-90-process-outline-dr-rail-geom",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Rail geometry is var-driven — private "
+        },
+        {
+          "insert": "--po-indent",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "--po-arrow-gap",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "--po-gap",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "--po-line",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "--po-stroke",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "--po-arrow",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " — indent sets the per-level inset and the elbow's left edge, arrow-gap is the distance from the arrowhead tip to the first letter, and the elbow lands on the first-line center while the trunk overlaps into both sibling gaps, so segments always meet."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-rail-run": {
+      "id": "b-90-process-outline-dr-rail-run",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "The elbow's flat run is derived — "
+        },
+        {
+          "insert": "indent − arrow-gap − arrow/2",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", clamped at zero — so it ends in the arrowhead's open back and the two stay connected at any knob values."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-rail-tokens": {
+      "id": "b-90-process-outline-dr-rail-tokens",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Every geometry var reads a style-rail token with the prototype default as fallback: "
+        },
+        {
+          "insert": "--docs-process-outline-indent",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "--docs-process-outline-row-gap",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "--docs-process-outline-arrow-gap",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "--docs-process-outline-line-height",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "--docs-process-outline-arrow-size",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "--docs-process-outline-stroke",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": "; step text size reads "
+        },
+        {
+          "insert": "--docs-process-outline-text-size",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": "."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-rail-2": {
+      "id": "b-90-process-outline-dr-rail-2",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "No kind colors, no icons, no collapse — the simplicity is deliberate, carried over from the pen-and-paper prototype."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-weight": {
+      "id": "b-90-process-outline-dr-weight",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Hierarchy by weight"
+        }
+      ],
+      "children": [
+        "b-90-process-outline-dr-weight-1",
+        "b-90-process-outline-dr-weight-2",
+        "b-90-process-outline-dr-weight-3"
+      ]
+    },
+    "b-90-process-outline-dr-weight-1": {
+      "id": "b-90-process-outline-dr-weight-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Root lines render heaviest, depth-one steps semibold, and depth three and deeper dims to a 78% mix of the ink."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-weight-2": {
+      "id": "b-90-process-outline-dr-weight-2",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Repeat",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "While",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", and "
+        },
+        {
+          "insert": "For each",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " at the start of a segment and "
+        },
+        {
+          "insert": "until",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " anywhere in it render bold as keywords."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-weight-3": {
+      "id": "b-90-process-outline-dr-weight-3",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Backtick spans render as code chips on a muted background."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-note": {
+      "id": "b-90-process-outline-dr-note",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Notes"
+        }
+      ],
+      "children": [
+        "b-90-process-outline-dr-note-1",
+        "b-90-process-outline-dr-note-2",
+        "b-90-process-outline-dr-note-3"
+      ]
+    },
+    "b-90-process-outline-dr-note-1": {
+      "id": "b-90-process-outline-dr-note-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "A note step renders as a bordered card — the component's only box — hung under its step, deliberately off the rail: no elbow, no arrowhead."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-note-2": {
+      "id": "b-90-process-outline-dr-note-2",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Consecutive note siblings collapse into one card, each note a bullet in its list."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-note-3": {
+      "id": "b-90-process-outline-dr-note-3",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Note text renders at the step ink and step text size by default — "
+        },
+        {
+          "insert": "--docs-process-outline-note-fg",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " defaults to the ink, "
+        },
+        {
+          "insert": "--docs-process-outline-note-text-size",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " to the text size — so the card keeps only its fill and border."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-dr-editor": {
+      "id": "b-90-process-outline-dr-editor",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Editor surface"
+        }
+      ],
+      "children": [
+        "b-90-process-outline-dr-editor-1"
+      ]
+    },
+    "b-90-process-outline-dr-editor-1": {
+      "id": "b-90-process-outline-dr-editor-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "The block is a non-editable atom leaf ("
+        },
+        {
+          "insert": "docProcessOutline",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " in "
+        },
+        {
+          "insert": "editor-nodes.ts",
+          "attributes": {
+            "reference": {
+              "kind": "source",
+              "path": "packages/docs-viewer/src/components/process-outline/editor-nodes.ts"
+            }
+          }
+        },
+        {
+          "insert": "); the shared atom node view reuses the same descriptor, so edit mode shows the same render as reading."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-agentrender-h": {
+      "id": "b-90-process-outline-agentrender-h",
+      "type": "heading",
+      "props": {
+        "level": 2
+      },
+      "text": [
+        {
+          "insert": "Agent Renderer"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-ar-intro": {
+      "id": "b-90-process-outline-ar-intro",
+      "type": "paragraph",
+      "props": {},
+      "text": [
+        {
+          "insert": "The "
+        },
+        {
+          "insert": "Agent renderer",
+          "attributes": {
+            "reference": {
+              "kind": "doc",
+              "path": "10-system-design/30-data-model/20-block-design/40-agent-renderer"
+            }
+          }
+        },
+        {
+          "insert": " contract element: the markdown projection in "
+        },
+        {
+          "insert": "agent-view.ts",
+          "attributes": {
+            "reference": {
+              "kind": "source",
+              "path": "packages/docs-model/src/components/process-outline/agent-view.ts"
+            }
+          }
+        },
+        {
+          "insert": " is a "
+        },
+        {
+          "insert": "process-outline",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " fence whose body is "
+        },
+        {
+          "insert": "serializeProcessOutline",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " over the step tree. Projected, the live Example above is:"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-ar-code": {
+      "id": "b-90-process-outline-ar-code",
+      "type": "code",
+      "props": {},
+      "text": [
+        {
+          "insert": "```process-outline\nRun mode\n     -> Get epoch-size candidates from the ranked worker system\n          -> Exclude locked, cooled-down, or unschedulable work\n          -> Keep enough ready work to feed the worker pool\n     -> Drain the epoch with workers\n          -> Spawn workers through the kernel until the epoch is drained\n          -> Each worker gets its own isolated worktree\n          > workers produce tentative evidence\n          > the epoch boundary makes the map authoritative again\n     -> Finish the epoch\n          -> Run the full build\n          -> Move every item to its authoritative lane\n     -> Continue\n          -> Repeat until the operator stops or the run bound is reached\n```"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-ar-b1": {
+      "id": "b-90-process-outline-ar-b1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "The info string is bare "
+        },
+        {
+          "insert": "process-outline",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " — the block has no title; a heading above carries one."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-ar-b2": {
+      "id": "b-90-process-outline-ar-b2",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "The fence body is serialized process-outline notation — root lines bare, "
+        },
+        {
+          "insert": "-> ",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " steps at 5-space indents, "
+        },
+        {
+          "insert": "> ",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " notes — parse a rewrite with "
+        },
+        {
+          "insert": "parseProcessOutline",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " and write it back through "
+        },
+        {
+          "insert": "process-outline.setSteps",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " to round-trip the structure."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-ar-b3": {
+      "id": "b-90-process-outline-ar-b3",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Malformed props project an empty fence body rather than crashing."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-theme-h": {
+      "id": "b-90-process-outline-theme-h",
+      "type": "heading",
+      "props": {
+        "level": 2
+      },
+      "text": [
+        {
+          "insert": "Theme"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-theme-intro": {
+      "id": "b-90-process-outline-theme-intro",
+      "type": "paragraph",
+      "props": {},
+      "text": [
+        {
+          "insert": "The "
+        },
+        {
+          "insert": "Theming",
+          "attributes": {
+            "reference": {
+              "kind": "doc",
+              "path": "10-system-design/30-data-model/20-block-design/50-theming"
+            }
+          }
+        },
+        {
+          "insert": " contract element: the renderer paints from fifteen "
+        },
+        {
+          "insert": "--docs-process-outline-*",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " tokens, defined in both theme blocks of "
+        },
+        {
+          "insert": "packages/docs-workbench/web/src/theme/semantic.css",
+          "attributes": {
+            "reference": {
+              "kind": "source",
+              "path": "packages/docs-workbench/web/src/theme/semantic.css"
+            }
+          }
+        },
+        {
+          "insert": "; corner radii derive from "
+        },
+        {
+          "insert": "--radius",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": "."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-theme-rail": {
+      "id": "b-90-process-outline-theme-rail",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Style rail"
+        }
+      ],
+      "children": [
+        "b-90-process-outline-theme-rail-1",
+        "b-90-process-outline-theme-rail-sliders",
+        "b-90-process-outline-theme-rail-2"
+      ]
+    },
+    "b-90-process-outline-theme-rail-1": {
+      "id": "b-90-process-outline-theme-rail-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Fourteen knobs under Theme → Components → Process Outline: six color — Ink, Rail, Note text, Note background, Note border, Code background — plus eight length sliders."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-theme-rail-sliders": {
+      "id": "b-90-process-outline-theme-rail-sliders",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Length sliders and ranges: Indent 16–72 px, Row gap 0–24 px, Arrow gap 0–16 px, Line height 16–40 px, Text size 10–18 px, Note text size 10–18 px, Arrow size 3–12 px, Stroke 0.5–4 px."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-theme-rail-2": {
+      "id": "b-90-process-outline-theme-rail-2",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Backed by the "
+        },
+        {
+          "insert": "process-outline",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " entry in "
+        },
+        {
+          "insert": "THEME_TOKEN_REGISTRY",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " ("
+        },
+        {
+          "insert": "theme-folders.ts",
+          "attributes": {
+            "reference": {
+              "kind": "source",
+              "path": "packages/docs-workbench/web/src/theme/theme-folders.ts"
+            }
+          }
+        },
+        {
+          "insert": ") and the "
+        },
+        {
+          "insert": "process-outline",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " picker file in the Components section."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-theme-deep": {
+      "id": "b-90-process-outline-theme-deep",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Derived deep ink"
+        }
+      ],
+      "children": [
+        "b-90-process-outline-theme-deep-1"
+      ]
+    },
+    "b-90-process-outline-theme-deep-1": {
+      "id": "b-90-process-outline-theme-deep-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "--docs-process-outline-deep-ink",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " is a 78% color-mix of the ink — deliberately not a knob, so depth dimming tracks any ink change."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-theme-opaque": {
+      "id": "b-90-process-outline-theme-opaque",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Opaque rail"
+        }
+      ],
+      "children": [
+        "b-90-process-outline-theme-opaque-1",
+        "b-90-process-outline-theme-opaque-2"
+      ]
+    },
+    "b-90-process-outline-theme-opaque-1": {
+      "id": "b-90-process-outline-theme-opaque-1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "--docs-process-outline-rail",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " is opaque by contract: overlapping elbow and trunk strokes double alpha at the joins."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-theme-opaque-2": {
+      "id": "b-90-process-outline-theme-opaque-2",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Light "
+        },
+        {
+          "insert": "#b3b1ad",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", dark "
+        },
+        {
+          "insert": "#5d6266",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": "."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-theme-table": {
+      "id": "b-90-process-outline-theme-table",
+      "type": "structured-table",
+      "props": {
+        "columns": [
+          "CSS variable",
+          "Default",
+          "Styles"
+        ],
+        "rows": [
+          [
+            "--docs-process-outline-ink",
+            "--docs-viewer-text-body",
+            "Text ink — title and step lines"
+          ],
+          [
+            "--docs-process-outline-deep-ink",
+            "78% mix of the ink",
+            "Step text at depth three and deeper"
+          ],
+          [
+            "--docs-process-outline-rail",
+            "#b3b1ad light · #5d6266 dark",
+            "The rail — trunks, elbows, arrowheads"
+          ],
+          [
+            "--docs-process-outline-note-fg",
+            "the ink",
+            "Note card text"
+          ],
+          [
+            "--docs-process-outline-note-bg",
+            "--muted",
+            "Note card background"
+          ],
+          [
+            "--docs-process-outline-note-border",
+            "--border",
+            "Note card border"
+          ],
+          [
+            "--docs-process-outline-code-bg",
+            "--muted",
+            "Backtick code-chip background"
+          ],
+          [
+            "--docs-process-outline-indent",
+            "36px",
+            "Horizontal inset per nesting level — also the elbow's left edge"
+          ],
+          [
+            "--docs-process-outline-row-gap",
+            "7px",
+            "Vertical gap between sibling rows"
+          ],
+          [
+            "--docs-process-outline-arrow-gap",
+            "4px",
+            "Arrowhead tip to the first letter"
+          ],
+          [
+            "--docs-process-outline-line-height",
+            "22px",
+            "Step first-line height — the elbow centers on half of it"
+          ],
+          [
+            "--docs-process-outline-text-size",
+            "12.5px",
+            "Step text size"
+          ],
+          [
+            "--docs-process-outline-note-text-size",
+            "the text size",
+            "Note card text size"
+          ],
+          [
+            "--docs-process-outline-arrow-size",
+            "6px",
+            "Arrowhead edge length"
+          ],
+          [
+            "--docs-process-outline-stroke",
+            "1.5px",
+            "Rail stroke width — trunks, elbows, arrowheads"
+          ]
+        ]
+      },
+      "children": []
+    },
+    "b-90-process-outline-adapter-h": {
+      "id": "b-90-process-outline-adapter-h",
+      "type": "heading",
+      "props": {
+        "level": 2
+      },
+      "text": [
+        {
+          "insert": "Agent Adapter"
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-adapter-p1": {
+      "id": "b-90-process-outline-adapter-p1",
+      "type": "paragraph",
+      "props": {},
+      "text": [
+        {
+          "insert": "The type uses the default adapter — no agent of its own; the contract is "
+        },
+        {
+          "insert": "Agent adapter",
+          "attributes": {
+            "reference": {
+              "kind": "doc",
+              "path": "10-system-design/30-data-model/20-block-design/60-agent-adapter"
+            }
+          }
+        },
+        {
+          "insert": "."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-adapter-b0": {
+      "id": "b-90-process-outline-adapter-b0",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "The five typed actions ride "
+        },
+        {
+          "insert": "componentAction",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " ops in the seven-op doc vocabulary ("
+        },
+        {
+          "insert": "packages/docs-model/src/doc-ops.ts",
+          "attributes": {
+            "reference": {
+              "kind": "source",
+              "path": "packages/docs-model/src/doc-ops.ts"
+            }
+          }
+        },
+        {
+          "insert": ")."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-adapter-b1": {
+      "id": "b-90-process-outline-adapter-b1",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "A "
+        },
+        {
+          "insert": "componentAction",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " names the registry key ("
+        },
+        {
+          "insert": "\"process-outline.setSteps\"",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": "), resolves the action, validates params, and runs "
+        },
+        {
+          "insert": "apply()",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " against the target block."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-adapter-b2": {
+      "id": "b-90-process-outline-adapter-b2",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "The returned props patch executes through the existing "
+        },
+        {
+          "insert": "updateBlock",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " path — merge semantics are single-sourced, the block id is preserved, and the inverse is the usual "
+        },
+        {
+          "insert": "updateBlock",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " inverse."
+        }
+      ],
+      "children": []
+    },
+    "b-90-process-outline-adapter-b3": {
+      "id": "b-90-process-outline-adapter-b3",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "Structural edits ride the generic ops — "
+        },
+        {
+          "insert": "insertBlock",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "updateBlock",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "deleteBlock",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ", "
+        },
+        {
+          "insert": "moveBlock",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": ". "
+        },
+        {
+          "insert": "splitBlock",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " and "
+        },
+        {
+          "insert": "mergeBlocks",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " never apply: the type carries no text."
+        }
+      ],
+      "children": []
+    }
+  }
+}

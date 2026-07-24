@@ -25,7 +25,7 @@ For documenting agentic systems, three of those types carry the whole model:
 | interaction-surface | interaction-surface | Operation signatures ({ name, description?, params?, returns?, kind? }) describing how a system is changed or queried. |
 | sequence | sequence | UML-style sequence diagram; props.src (or sequenceId) points at a SequenceDocument, optional props.title. |
 | canvas | canvas | Embedded interactive canvas; props.canvasId (or legacy src) plus an optional view crop. |
-| waterfall | waterfall | Process-flow waterfall; props.source holds the arrow-tree notation text, optional props.title. |
+| process-outline | process-outline | Ordered process outline; props.steps holds the recursive step tree with optional clarification-note leaves. |
 
 ## The Families
 
@@ -47,7 +47,7 @@ For documenting agentic systems, three of those types carry the whole model:
 
 - canvas
 
-- waterfall
+- process-outline
 
 ## Page Structure
 

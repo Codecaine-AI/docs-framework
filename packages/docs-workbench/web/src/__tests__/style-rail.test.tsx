@@ -13,12 +13,87 @@ import {
   type StyleRailSettings,
 } from "../shell/StyleRail";
 import {
+  componentLeaf,
+  isLeafOverridden,
+  paneOverrideCount,
+  settingLeaf,
+} from "../shell/style-rail-overrides";
+import { STYLE_RAIL_GROUPS } from "../shell/style-rail-nav";
+import {
   THEME_TOKEN_REGISTRY,
   compileThemeCss,
   readThemeDefinition,
 } from "../theme/theme-folders";
 
 const STORAGE_KEY = "docs-style-rail-settings.v1";
+const SELECTED_PANE_STORAGE_KEY = "docs-style-rail-selected";
+
+const EXPECTED_NAV_GROUPS = [
+  {
+    id: "theme",
+    label: "Theme",
+    items: [
+      { id: "theme.presets", label: "Presets" },
+      { id: "theme.colors", label: "Colors" },
+      { id: "theme.typography", label: "Typography" },
+      { id: "theme.background", label: "Background" },
+      { id: "theme.surfaces", label: "Surfaces" },
+    ],
+  },
+  {
+    id: "layout",
+    label: "Layout",
+    items: [
+      { id: "layout.sidebar", label: "Sidebar" },
+      { id: "layout.editor", label: "Editor" },
+      { id: "layout.side-peek", label: "Side peek" },
+      { id: "layout.scrollbar", label: "Scrollbar" },
+    ],
+  },
+  {
+    id: "rich-text",
+    label: "Rich text",
+    items: [
+      { id: "blocks.paragraph", label: "Paragraph" },
+      { id: "blocks.heading", label: "Heading" },
+      { id: "blocks.list-item", label: "List item" },
+      { id: "blocks.quote", label: "Quote" },
+      { id: "blocks.callout", label: "Callout" },
+      { id: "blocks.divider", label: "Divider" },
+      { id: "blocks.image", label: "Image" },
+      { id: "blocks.video", label: "Video" },
+      { id: "theme.references", label: "References" },
+    ],
+  },
+  {
+    id: "code",
+    label: "Code",
+    items: [
+      { id: "blocks.code", label: "Code" },
+      { id: "blocks.inline-code", label: "Inline code" },
+      { id: "blocks.linking", label: "Linked panels" },
+    ],
+  },
+  {
+    id: "structure",
+    label: "Structure",
+    items: [
+      { id: "blocks.structured-table", label: "Structured table" },
+      { id: "blocks.file-tree", label: "File tree" },
+      { id: "blocks.state-shape", label: "State shape" },
+      { id: "blocks.interaction-surface", label: "Interaction surface" },
+    ],
+  },
+  {
+    id: "diagrams",
+    label: "Diagrams",
+    items: [
+      { id: "blocks.sequence", label: "Sequence" },
+      { id: "blocks.canvas", label: "Canvas" },
+      { id: "blocks.process-outline", label: "Process Outline" },
+    ],
+  },
+] as const;
 
 afterEach(() => {
   cleanup();
@@ -73,9 +148,409 @@ function RailHarness({ initial = DEFAULT_STYLE_RAIL_SETTINGS }: { initial?: Styl
       <output data-testid="reference-settings">{JSON.stringify(settings.reference)}</output>
       <output data-testid="component-settings">{JSON.stringify(settings.components)}</output>
       <output data-testid="dark-setting">{String(dark)}</output>
+      <output data-testid="rail-settings">{JSON.stringify(settings)}</output>
     </>
   );
 }
+
+function openPane(name: string | RegExp) {
+  const navigation = screen.getByRole("navigation", { name: "Style sections" });
+  fireEvent.click(within(navigation).getByRole("button", { name }));
+}
+
+describe("style rail override helpers", () => {
+  const seeded: StyleRailSettings = {
+    ...DEFAULT_STYLE_RAIL_SETTINGS,
+    accent: "purple",
+    typography: { ...DEFAULT_STYLE_RAIL_SETTINGS.typography, fontSize: 16 },
+    list: { ...DEFAULT_STYLE_RAIL_SETTINGS.list, discSize: 8 },
+    components: {
+      code: { ruleOpacity: "0.9" },
+      callout: { border: "#ff0000" },
+      surfaces: { radius: "8px" },
+    },
+  };
+
+  it("attributes seeded scalar and component overrides to exactly one pane", () => {
+    const counts = Object.fromEntries(
+      STYLE_RAIL_GROUPS.flatMap((group) => group.items).map((item) => [
+        item.id,
+        paneOverrideCount(seeded, item.id),
+      ]),
+    );
+
+    expect(counts).toEqual({
+      "theme.presets": 0,
+      "theme.colors": 1,
+      "theme.typography": 1,
+      "theme.background": 0,
+      "theme.surfaces": 0,
+      "theme.references": 0,
+      "blocks.inline-code": 0,
+      "blocks.paragraph": 0,
+      "blocks.heading": 0,
+      "blocks.list-item": 1,
+      "blocks.quote": 0,
+      "blocks.code": 1,
+      "blocks.callout": 1,
+      "blocks.divider": 0,
+      "blocks.image": 0,
+      "blocks.video": 0,
+      "blocks.file-tree": 0,
+      "blocks.structured-table": 0,
+      "blocks.interaction-surface": 0,
+      "blocks.state-shape": 0,
+      "blocks.linking": 0,
+      "blocks.process-outline": 0,
+      "blocks.sequence": 0,
+      "blocks.canvas": 0,
+      "layout.sidebar": 0,
+      "layout.scrollbar": 0,
+      "layout.side-peek": 0,
+      "layout.editor": 0,
+    });
+    expect(isLeafOverridden(seeded, settingLeaf("accent"))).toBe(true);
+    expect(isLeafOverridden(seeded, componentLeaf("code", "ruleOpacity"))).toBe(true);
+  });
+
+  it("excludes a retained non-color component entry at its registry default", () => {
+    const settings: StyleRailSettings = {
+      ...DEFAULT_STYLE_RAIL_SETTINGS,
+      components: { surfaces: { radius: "8px" } },
+    };
+
+    expect(isLeafOverridden(settings, componentLeaf("surfaces", "radius"))).toBe(false);
+    expect(paneOverrideCount(settings, "theme.surfaces")).toBe(0);
+  });
+
+  it("attributes the retired Column leaves to Editor", () => {
+    const settings: StyleRailSettings = {
+      ...DEFAULT_STYLE_RAIL_SETTINGS,
+      layout: {
+        ...DEFAULT_STYLE_RAIL_SETTINGS.layout,
+        contentWidth: 112,
+        contentMargin: 40,
+        topPadding: 28,
+        titlePadding: 24,
+        bottomPadding: 32,
+      },
+    };
+
+    expect(paneOverrideCount(settings, "layout.editor")).toBe(5);
+  });
+
+  it("attributes surface knobs and component tokens to the merged Surfaces pane", () => {
+    const settings: StyleRailSettings = {
+      ...DEFAULT_STYLE_RAIL_SETTINGS,
+      layout: {
+        ...DEFAULT_STYLE_RAIL_SETTINGS.layout,
+        radius: 12,
+        borderStrength: 1.5,
+        backgroundTint: 0.2,
+        sidebarTint: -0.2,
+      },
+      components: {
+        surfaces: {
+          border: "#112233",
+          muted: "#445566",
+          icon: "#778899",
+          radius: "12px",
+        },
+      },
+    };
+
+    expect(paneOverrideCount(settings, "theme.surfaces")).toBe(8);
+  });
+});
+
+describe("style rail navigation", () => {
+  it("renders the six regrouped sections with all 28 pane items in order", () => {
+    expect(
+      STYLE_RAIL_GROUPS.map((group) => ({
+        id: group.id,
+        label: group.label,
+        items: group.items.map((item) => ({ id: item.id, label: item.label })),
+      })),
+    ).toEqual(EXPECTED_NAV_GROUPS);
+
+    render(<RailHarness />);
+    const navigation = within(screen.getByRole("navigation", { name: "Style sections" }));
+
+    expect(
+      Array.from(
+        screen.getByRole("navigation", { name: "Style sections" })
+          .querySelectorAll(".style-rail-nav-label"),
+        (label) => label.textContent,
+      ),
+    ).toEqual(EXPECTED_NAV_GROUPS.map((group) => group.label));
+    for (const group of EXPECTED_NAV_GROUPS) {
+      for (const item of group.items) {
+        expect(navigation.getByRole("button", { name: item.label })).toBeTruthy();
+      }
+    }
+    expect(navigation.getAllByRole("button")).toHaveLength(5 + 4 + 9 + 3 + 4 + 3);
+  });
+
+  it("swaps the visible detail pane when a rail item is selected", () => {
+    render(<RailHarness />);
+
+    expect(screen.getByRole("heading", { name: "Presets" })).toBeTruthy();
+    openPane("Colors");
+    expect(screen.getByRole("heading", { name: "Colors" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Presets" })).toBeNull();
+  });
+
+  it("persists and restores the selected pane", () => {
+    render(<RailHarness />);
+    openPane("Sidebar");
+    expect(window.localStorage.getItem(SELECTED_PANE_STORAGE_KEY)).toBe("layout.sidebar");
+
+    cleanup();
+    render(<RailHarness />);
+    expect(screen.getByRole("heading", { name: "Sidebar" })).toBeTruthy();
+  });
+
+  it("falls back to Presets when the stored pane id is invalid", () => {
+    window.localStorage.setItem(SELECTED_PANE_STORAGE_KEY, "layout.missing");
+    render(<RailHarness />);
+
+    expect(screen.getByRole("heading", { name: "Presets" })).toBeTruthy();
+  });
+
+  for (const retiredId of ["layout.column", "layout.surfaces", "blocks.surfaces"]) {
+    it(`falls back to Presets when the stored pane id is retired (${retiredId})`, () => {
+      window.localStorage.setItem(SELECTED_PANE_STORAGE_KEY, retiredId);
+      render(<RailHarness />);
+
+      expect(screen.getByRole("heading", { name: "Presets" })).toBeTruthy();
+    });
+  }
+
+  it("shows the pane name and active theme layering line in the detail head", () => {
+    render(<RailHarness />);
+    openPane("Callout");
+
+    expect(screen.getByRole("heading", { name: "Callout" })).toBeTruthy();
+    expect(screen.getByText("No overrides · layered over Default theme")).toBeTruthy();
+  });
+
+  it("round-trips the complete settings object through export and import", async () => {
+    const custom = normalizeSettings({
+      accent: "green",
+      background: "#112233",
+      list: { indent: 31 },
+      components: { code: { ruleWidth: "2px", zebraOpacity: "0.6" } },
+    });
+    let exportedBlob: Blob | null = null;
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+    const originalAnchorClick = HTMLAnchorElement.prototype.click;
+    URL.createObjectURL = ((blob: Blob) => {
+      exportedBlob = blob;
+      return "blob:style-rail-round-trip-test";
+    }) as typeof URL.createObjectURL;
+    URL.revokeObjectURL = (() => {}) as typeof URL.revokeObjectURL;
+    HTMLAnchorElement.prototype.click = () => {};
+
+    try {
+      render(<RailHarness initial={custom} />);
+      fireEvent.click(screen.getByRole("button", { name: "Export theme" }));
+      expect(exportedBlob).toBeTruthy();
+      const exportedText = await exportedBlob!.text();
+
+      fireEvent.click(screen.getByRole("button", { name: "Reset to defaults" }));
+      expect(JSON.parse(screen.getByTestId("rail-settings").textContent ?? "null")).toEqual(
+        DEFAULT_STYLE_RAIL_SETTINGS,
+      );
+
+      const imported = new File([exportedText], "theme.json", { type: "application/json" });
+      fireEvent.change(screen.getByLabelText("Import theme"), {
+        target: { files: [imported] },
+      });
+      await waitFor(() => {
+        expect(JSON.parse(screen.getByTestId("rail-settings").textContent ?? "null")).toEqual(
+          custom,
+        );
+      });
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL;
+      URL.revokeObjectURL = originalRevokeObjectURL;
+      HTMLAnchorElement.prototype.click = originalAnchorClick;
+    }
+  });
+});
+
+describe("style rail override state", () => {
+  it("shows block counts and theme or layout dots in the rail", () => {
+    const initial: StyleRailSettings = {
+      ...DEFAULT_STYLE_RAIL_SETTINGS,
+      typography: { ...DEFAULT_STYLE_RAIL_SETTINGS.typography, fontSize: 16 },
+      layout: { ...DEFAULT_STYLE_RAIL_SETTINGS.layout, contentWidth: 112 },
+      components: {
+        callout: { border: "#ff0000", fill: "#00ff00" },
+      },
+    };
+    render(<RailHarness initial={initial} />);
+    const navigation = within(screen.getByRole("navigation", { name: "Style sections" }));
+
+    const callout = navigation.getByRole("button", { name: "Callout, 2 overrides" });
+    expect(within(callout).getByText("2")).toHaveProperty(
+      "className",
+      "style-rail-nav-override-count",
+    );
+    expect(
+      navigation
+        .getByRole("button", { name: "Typography, 1 override" })
+        .querySelector(".style-rail-nav-override-dot"),
+    ).toBeTruthy();
+    expect(
+      navigation
+        .getByRole("button", { name: "Editor, 1 override" })
+        .querySelector(".style-rail-nav-override-dot"),
+    ).toBeTruthy();
+  });
+
+  it("updates the header, rail state, and row dot when a knob changes", () => {
+    render(<RailHarness />);
+    openPane("Typography");
+
+    expect(screen.getByText("No overrides · layered over Default theme")).toBeTruthy();
+    const fontSize = screen.getByLabelText(/Font size/) as HTMLInputElement;
+    const row = fontSize.closest("label");
+    expect(row?.querySelector(".style-rail-row-override-dot")?.getAttribute("data-overridden"))
+      .toBe("false");
+
+    fireEvent.change(fontSize, { target: { value: "16" } });
+
+    expect(screen.getByText("1 override · layered over Default theme")).toBeTruthy();
+    expect(row?.querySelector(".style-rail-row-override-dot")?.getAttribute("data-overridden"))
+      .toBe("true");
+    expect(
+      screen.getByRole("button", { name: "Typography, 1 override" }),
+    ).toBeTruthy();
+
+    openPane("Colors");
+    expect(
+      (screen.getByLabelText("Dark mode") as HTMLInputElement)
+        .closest("label")
+        ?.querySelector(".style-rail-row-override-dot"),
+    ).toBeNull();
+  });
+
+  it("resets only the selected block file and hides the reset row at zero", () => {
+    const initial: StyleRailSettings = {
+      ...DEFAULT_STYLE_RAIL_SETTINGS,
+      layout: { ...DEFAULT_STYLE_RAIL_SETTINGS.layout, contentWidth: 112 },
+      sidebar: { ...DEFAULT_STYLE_RAIL_SETTINGS.sidebar, font: "mono" },
+      components: {
+        callout: { border: "#ff0000", fill: "#00ff00" },
+        code: { ruleOpacity: "0.9" },
+      },
+    };
+    render(<RailHarness initial={initial} />);
+    openPane("Callout, 2 overrides");
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset Callout to theme" }));
+
+    expect(JSON.parse(screen.getByTestId("component-settings").textContent ?? "null")).toEqual({
+      code: { ruleOpacity: "0.9" },
+    });
+    const settings = JSON.parse(screen.getByTestId("rail-settings").textContent ?? "null");
+    expect(settings.layout.contentWidth).toBe(112);
+    expect(settings.sidebar.font).toBe("mono");
+    expect(screen.queryByRole("button", { name: "Reset Callout to theme" })).toBeNull();
+    expect(screen.getByText("No overrides · layered over Default theme")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Callout" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Code, 1 override" })).toBeTruthy();
+  });
+
+  it("resets list-item component tokens and list settings together", () => {
+    const initial: StyleRailSettings = {
+      ...DEFAULT_STYLE_RAIL_SETTINGS,
+      list: { ...DEFAULT_STYLE_RAIL_SETTINGS.list, discSize: 8 },
+      components: {
+        "list-item": { marker: "#ff0000" },
+        code: { ruleOpacity: "0.9" },
+      },
+    };
+    render(<RailHarness initial={initial} />);
+    openPane("List item, 2 overrides");
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset List item to theme" }));
+
+    expect(JSON.parse(screen.getByTestId("list-settings").textContent ?? "null")).toEqual(
+      DEFAULT_STYLE_RAIL_SETTINGS.list,
+    );
+    expect(JSON.parse(screen.getByTestId("component-settings").textContent ?? "null")).toEqual({
+      code: { ruleOpacity: "0.9" },
+    });
+    expect(screen.queryByRole("button", { name: "Reset List item to theme" })).toBeNull();
+  });
+});
+
+describe("style rail merged panes", () => {
+  it("renders Column first in Editor with all five column controls", () => {
+    render(<RailHarness />);
+    openPane("Editor");
+
+    const detailBody = document.querySelector(".style-rail-detail-body");
+    expect(
+      Array.from(detailBody?.querySelectorAll("h3") ?? [], (heading) => heading.textContent),
+    ).toEqual(["Column", "Highlight", "Drop line", "Drag select", "Drag grip"]);
+
+    const column = screen.getByRole("heading", { name: "Column" }).closest("section");
+    expect(column).toBeTruthy();
+    for (const label of [
+      /^Max width/,
+      /^Padding/,
+      /^Top padding/,
+      /^Title padding/,
+      /^Bottom padding/,
+    ]) {
+      expect(within(column!).getByLabelText(label)).toBeTruthy();
+    }
+  });
+
+  it("renders surface knobs and tokens, then resets only surface token overrides", () => {
+    const initial: StyleRailSettings = {
+      ...DEFAULT_STYLE_RAIL_SETTINGS,
+      layout: { ...DEFAULT_STYLE_RAIL_SETTINGS.layout, radius: 12 },
+      components: {
+        surfaces: { border: "#ff0000" },
+        code: { ruleOpacity: "0.9" },
+      },
+    };
+    render(<RailHarness initial={initial} />);
+    openPane(/^Surfaces/);
+
+    for (const label of [
+      /^Radius/,
+      /^Border strength/,
+      /^Background tint/,
+      /^Sidebar tint/,
+    ]) {
+      expect(screen.getByLabelText(label)).toBeTruthy();
+    }
+    const tokens = screen.getByRole("heading", { name: "Tokens" }).closest("section");
+    expect(tokens).toBeTruthy();
+    for (const label of ["Border", "Muted fill", "Icons", "Corner radius"]) {
+      expect(within(tokens!).getByText(label)).toBeTruthy();
+    }
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset Surfaces tokens to theme" }));
+
+    expect(JSON.parse(screen.getByTestId("component-settings").textContent ?? "null")).toEqual({
+      code: { ruleOpacity: "0.9" },
+    });
+    expect(
+      JSON.parse(screen.getByTestId("rail-settings").textContent ?? "null").layout.radius,
+    ).toBe(12);
+    expect(
+      screen.queryByRole("button", { name: "Reset Surfaces tokens to theme" }),
+    ).toBeNull();
+    expect(screen.getByText("1 override · layered over Default theme")).toBeTruthy();
+  });
+});
 
 describe("style rail list settings", () => {
   it("defaults old settings blobs and validates every list geometry knob", () => {
@@ -203,8 +678,7 @@ describe("style rail list settings", () => {
 
   it("renders five list geometry sliders, no shape selects, and patches only the list group", () => {
     render(<RailHarness />);
-    fireEvent.click(screen.getByRole("button", { name: "Components" }));
-    fireEvent.click(screen.getByRole("button", { name: "List item" }));
+    openPane("List item");
 
     const discSize = screen.getByLabelText(/Disc size/) as HTMLInputElement;
     const circleSize = screen.getByLabelText(/Circle size/) as HTMLInputElement;
@@ -373,25 +847,17 @@ describe("style rail reference settings", () => {
 
   it("renders and patches the reference icon controls", () => {
     render(<RailHarness />);
-    const referencesToggle = screen.getByRole("button", { name: "References" });
-    fireEvent.click(referencesToggle);
-    const referencesElement = referencesToggle.closest("section")!;
-    const referencesSection = within(referencesElement);
+    openPane("References");
 
-    expect(referencesSection.getByText("Text color")).toBeTruthy();
-    expect(referencesSection.getByText("Hover underline")).toBeTruthy();
-    expect(referencesSection.queryAllByText("Hover color")).toHaveLength(0);
-    expect(referencesElement.querySelectorAll("input[type='color']")).toHaveLength(2);
+    expect(screen.getByText("Text color")).toBeTruthy();
+    expect(screen.getByText("Hover underline")).toBeTruthy();
+    expect(screen.queryAllByText("Hover color")).toHaveLength(0);
+    expect(screen.getByText("Icon")).toBeTruthy();
+    expect(document.querySelectorAll("input[type='color']")).toHaveLength(3);
 
-    const iconToggle = referencesSection.getByRole("button", { name: "Icon" });
-    fireEvent.click(iconToggle);
-    const iconElement = iconToggle.closest("section")!;
-    const iconSection = within(iconElement);
-    expect(iconElement.querySelectorAll("input[type='color']")).toHaveLength(1);
-
-    fireEvent.change(iconSection.getByLabelText(/Size/), { target: { value: "18" } });
-    fireEvent.change(iconSection.getByLabelText(/Spacing/), { target: { value: "7" } });
-    fireEvent.change(iconSection.getByLabelText("Position"), { target: { value: "after" } });
+    fireEvent.change(screen.getByLabelText(/Size/), { target: { value: "18" } });
+    fireEvent.change(screen.getByLabelText(/Spacing/), { target: { value: "7" } });
+    fireEvent.change(screen.getByLabelText("Position"), { target: { value: "after" } });
 
     expect(JSON.parse(screen.getByTestId("reference-settings").textContent ?? "null")).toEqual({
       ...DEFAULT_STYLE_RAIL_SETTINGS.reference,
@@ -532,17 +998,14 @@ describe("style rail sidebar settings", () => {
     expect(vars["--docs-sidebar-guide-opacity"]).toBe("0.35");
   });
 
-  it("renders the Sidebar section and its nine controls in the Layout tab", () => {
+  it("renders the Sidebar pane and its nine controls", () => {
     render(<RailHarness />);
-    fireEvent.click(screen.getByRole("button", { name: "Layout" }));
-    const sidebarToggle = screen.getByRole("button", { name: "Sidebar" });
-    fireEvent.click(sidebarToggle);
-    const sidebarSection = within(sidebarToggle.closest("section")!);
+    openPane("Sidebar");
 
-    expect(sidebarSection.getByText("Background")).toBeTruthy();
-    expect(sidebarSection.getByText("Text color")).toBeTruthy();
+    expect(screen.getByLabelText(/Background/)).toBeTruthy();
+    expect(screen.getByText("Text color")).toBeTruthy();
 
-    const font = sidebarSection.getByLabelText("Font") as HTMLSelectElement;
+    const font = screen.getByLabelText("Font") as HTMLSelectElement;
     expect(Array.from(font.options, (option) => option.value)).toEqual([
       "sans",
       "serif",
@@ -550,30 +1013,30 @@ describe("style rail sidebar settings", () => {
     ]);
     expect(font.value).toBe("sans");
 
-    const textSize = sidebarSection.getByLabelText(/Text size/) as HTMLInputElement;
+    const textSize = screen.getByLabelText(/Text size/) as HTMLInputElement;
     expect(textSize).toHaveProperty("min", "10");
     expect(textSize).toHaveProperty("max", "20");
     expect(textSize).toHaveProperty("step", "1");
     expect(textSize).toHaveProperty("value", "14");
 
-    const padding = sidebarSection.getByLabelText(/^Padding/) as HTMLInputElement;
+    const padding = screen.getByLabelText(/^Padding/) as HTMLInputElement;
     expect(padding).toHaveProperty("min", "0");
     expect(padding).toHaveProperty("max", "16");
     expect(padding).toHaveProperty("step", "1");
     expect(padding).toHaveProperty("value", "4");
 
-    const indentGuides = sidebarSection.getByLabelText("Indent guides") as HTMLInputElement;
+    const indentGuides = screen.getByLabelText("Indent guides") as HTMLInputElement;
     expect(indentGuides).toHaveProperty("type", "checkbox");
     expect(indentGuides).toHaveProperty("checked", true);
-    expect(sidebarSection.getByText("Guide color")).toBeTruthy();
+    expect(screen.getByText("Guide color")).toBeTruthy();
 
-    const guideWidth = sidebarSection.getByLabelText(/Guide width/) as HTMLInputElement;
+    const guideWidth = screen.getByLabelText(/Guide width/) as HTMLInputElement;
     expect(guideWidth).toHaveProperty("min", "1");
     expect(guideWidth).toHaveProperty("max", "4");
     expect(guideWidth).toHaveProperty("step", "0.5");
     expect(guideWidth).toHaveProperty("value", "1");
 
-    const guideOpacity = sidebarSection.getByLabelText(/Guide opacity/) as HTMLInputElement;
+    const guideOpacity = screen.getByLabelText(/Guide opacity/) as HTMLInputElement;
     expect(guideOpacity).toHaveProperty("min", "0.05");
     expect(guideOpacity).toHaveProperty("max", "1");
     expect(guideOpacity).toHaveProperty("step", "0.05");
@@ -714,9 +1177,7 @@ describe("style rail component token kinds", () => {
 
   it("renders metadata-driven structured-table sliders and stores their units", () => {
     render(<RailHarness />);
-    fireEvent.click(screen.getByRole("button", { name: "Components" }));
-    const tableSection = screen.getByRole("button", { name: "Structured table" });
-    fireEvent.click(tableSection);
+    openPane("Structured table");
 
     const width = screen.getByLabelText(/Header rule width/) as HTMLInputElement;
     const opacity = screen.getByLabelText(/Header rule opacity/) as HTMLInputElement;
@@ -740,8 +1201,7 @@ describe("style rail component token kinds", () => {
 
   it("renders the editor-furniture sliders (handle radius/offset, selection padding)", () => {
     render(<RailHarness />);
-    fireEvent.click(screen.getByRole("button", { name: "Components" }));
-    fireEvent.click(screen.getByRole("button", { name: "Structured table" }));
+    openPane("Structured table");
 
     const radius = screen.getByLabelText(/Handle radius/) as HTMLInputElement;
     const offset = screen.getByLabelText(/Handle offset/) as HTMLInputElement;
@@ -932,10 +1392,7 @@ describe("style rail code block tokens", () => {
 
   it("renders the code component color knobs with their sidebar labels", () => {
     render(<RailHarness />);
-    fireEvent.click(screen.getByRole("button", { name: "Components" }));
-    const codeToggle = screen.getByRole("button", { name: "Code" });
-    fireEvent.click(codeToggle);
-    const codeSection = within(codeToggle.closest("section")!);
+    openPane("Code");
 
     for (const label of [
       "Language badge",
@@ -945,14 +1402,13 @@ describe("style rail code block tokens", () => {
       "Zebra stripe",
       "Rules",
     ]) {
-      expect(codeSection.getByText(label)).toBeTruthy();
+      expect(screen.getByText(label)).toBeTruthy();
     }
   });
 
   it("renders metadata-driven code rule/zebra sliders and stores their units", () => {
     render(<RailHarness />);
-    fireEvent.click(screen.getByRole("button", { name: "Components" }));
-    fireEvent.click(screen.getByRole("button", { name: "Code" }));
+    openPane("Code");
 
     const width = screen.getByLabelText(/Rule width/) as HTMLInputElement;
     const opacity = screen.getByLabelText(/Rule opacity/) as HTMLInputElement;
@@ -1017,13 +1473,10 @@ describe("style rail shared linking tokens", () => {
 
   it("renders the Linked panels knobs with their sidebar labels", () => {
     render(<RailHarness />);
-    fireEvent.click(screen.getByRole("button", { name: "Components" }));
-    const linkingToggle = screen.getByRole("button", { name: "Linked panels" });
-    fireEvent.click(linkingToggle);
-    const linkingSection = within(linkingToggle.closest("section")!);
+    openPane("Linked panels");
 
     for (const label of ["Zebra stripe", "Link highlight", "Pin & rail"]) {
-      expect(linkingSection.getByText(label)).toBeTruthy();
+      expect(screen.getByText(label)).toBeTruthy();
     }
   });
 });
@@ -1103,10 +1556,7 @@ describe("style rail interaction-surface tokens", () => {
 
   it("renders the Interaction surface knobs with their sidebar labels", () => {
     render(<RailHarness />);
-    fireEvent.click(screen.getByRole("button", { name: "Components" }));
-    const toggle = screen.getByRole("button", { name: "Interaction surface" });
-    fireEvent.click(toggle);
-    const section = within(toggle.closest("section")!);
+    openPane("Interaction surface");
 
     for (const label of [
       "Border",
@@ -1124,14 +1574,14 @@ describe("style rail interaction-surface tokens", () => {
       "Row padding",
       "Card gap",
     ]) {
-      expect(section.getByText(label)).toBeTruthy();
+      expect(screen.getAllByText(label).length).toBeGreaterThan(0);
     }
 
-    const rowPad = section.getByLabelText(/Row padding/) as HTMLInputElement;
+    const rowPad = screen.getByLabelText(/Row padding/) as HTMLInputElement;
     expect(rowPad).toHaveProperty("min", "4");
     expect(rowPad).toHaveProperty("max", "16");
     expect(rowPad).toHaveProperty("value", "8");
-    const opGap = section.getByLabelText(/Card gap/) as HTMLInputElement;
+    const opGap = screen.getByLabelText(/Card gap/) as HTMLInputElement;
     expect(opGap).toHaveProperty("min", "6");
     expect(opGap).toHaveProperty("max", "28");
     expect(opGap).toHaveProperty("value", "14");
@@ -1192,10 +1642,7 @@ describe("style rail state-shape tokens", () => {
 
   it("renders the State shape knobs with their sidebar labels", () => {
     render(<RailHarness />);
-    fireEvent.click(screen.getByRole("button", { name: "Components" }));
-    const toggle = screen.getByRole("button", { name: "State shape" });
-    fireEvent.click(toggle);
-    const section = within(toggle.closest("section")!);
+    openPane("State shape");
 
     for (const label of [
       "Border",
@@ -1209,27 +1656,27 @@ describe("style rail state-shape tokens", () => {
       "Child rule",
       "Row padding",
     ]) {
-      expect(section.getByText(label)).toBeTruthy();
+      expect(screen.getAllByText(label).length).toBeGreaterThan(0);
     }
 
-    const rowPad = section.getByLabelText(/Row padding/) as HTMLInputElement;
+    const rowPad = screen.getByLabelText(/Row padding/) as HTMLInputElement;
     expect(rowPad).toHaveProperty("min", "4");
     expect(rowPad).toHaveProperty("max", "16");
     expect(rowPad).toHaveProperty("value", "9");
   });
 });
 
-describe("style rail waterfall tokens", () => {
-  it("registers every waterfall var under the waterfall entry", () => {
-    const entry = THEME_TOKEN_REGISTRY.waterfall;
-    expect(entry.ink).toEqual({ vars: ["--docs-waterfall-ink"], kind: "color" });
-    expect(entry.rail).toEqual({ vars: ["--docs-waterfall-rail"], kind: "color" });
-    expect(entry.noteFg).toEqual({ vars: ["--docs-waterfall-note-fg"], kind: "color" });
-    expect(entry.noteBg).toEqual({ vars: ["--docs-waterfall-note-bg"], kind: "color" });
-    expect(entry.noteBorder).toEqual({ vars: ["--docs-waterfall-note-border"], kind: "color" });
-    expect(entry.codeBg).toEqual({ vars: ["--docs-waterfall-code-bg"], kind: "color" });
+describe("style rail process-outline tokens", () => {
+  it("registers every process-outline var under the process-outline entry", () => {
+    const entry = THEME_TOKEN_REGISTRY["process-outline"];
+    expect(entry.ink).toEqual({ vars: ["--docs-process-outline-ink"], kind: "color" });
+    expect(entry.rail).toEqual({ vars: ["--docs-process-outline-rail"], kind: "color" });
+    expect(entry.noteFg).toEqual({ vars: ["--docs-process-outline-note-fg"], kind: "color" });
+    expect(entry.noteBg).toEqual({ vars: ["--docs-process-outline-note-bg"], kind: "color" });
+    expect(entry.noteBorder).toEqual({ vars: ["--docs-process-outline-note-border"], kind: "color" });
+    expect(entry.codeBg).toEqual({ vars: ["--docs-process-outline-code-bg"], kind: "color" });
     expect(entry.indent).toEqual({
-      vars: ["--docs-waterfall-indent"],
+      vars: ["--docs-process-outline-indent"],
       kind: "length",
       min: 16,
       max: 72,
@@ -1238,7 +1685,7 @@ describe("style rail waterfall tokens", () => {
       defaultValue: 36,
     });
     expect(entry.rowGap).toEqual({
-      vars: ["--docs-waterfall-row-gap"],
+      vars: ["--docs-process-outline-row-gap"],
       kind: "length",
       min: 0,
       max: 24,
@@ -1247,7 +1694,7 @@ describe("style rail waterfall tokens", () => {
       defaultValue: 7,
     });
     expect(entry.arrowGap).toEqual({
-      vars: ["--docs-waterfall-arrow-gap"],
+      vars: ["--docs-process-outline-arrow-gap"],
       kind: "length",
       min: 0,
       max: 16,
@@ -1256,7 +1703,7 @@ describe("style rail waterfall tokens", () => {
       defaultValue: 4,
     });
     expect(entry.lineHeight).toEqual({
-      vars: ["--docs-waterfall-line-height"],
+      vars: ["--docs-process-outline-line-height"],
       kind: "length",
       min: 16,
       max: 40,
@@ -1265,7 +1712,7 @@ describe("style rail waterfall tokens", () => {
       defaultValue: 22,
     });
     expect(entry.textSize).toEqual({
-      vars: ["--docs-waterfall-text-size"],
+      vars: ["--docs-process-outline-text-size"],
       kind: "length",
       min: 10,
       max: 18,
@@ -1276,7 +1723,7 @@ describe("style rail waterfall tokens", () => {
     // Note text size defaults to the step text size (semantic.css keeps the
     // var() reference); the registry default is the same literal number.
     expect(entry.noteTextSize).toEqual({
-      vars: ["--docs-waterfall-note-text-size"],
+      vars: ["--docs-process-outline-note-text-size"],
       kind: "length",
       min: 10,
       max: 18,
@@ -1285,7 +1732,7 @@ describe("style rail waterfall tokens", () => {
       defaultValue: 12.5,
     });
     expect(entry.arrowSize).toEqual({
-      vars: ["--docs-waterfall-arrow-size"],
+      vars: ["--docs-process-outline-arrow-size"],
       kind: "length",
       min: 3,
       max: 12,
@@ -1294,7 +1741,7 @@ describe("style rail waterfall tokens", () => {
       defaultValue: 6,
     });
     expect(entry.stroke).toEqual({
-      vars: ["--docs-waterfall-stroke"],
+      vars: ["--docs-process-outline-stroke"],
       kind: "length",
       min: 0.5,
       max: 4,
@@ -1304,10 +1751,10 @@ describe("style rail waterfall tokens", () => {
     });
   });
 
-  it("normalizes and applies waterfall color and geometry overrides onto their CSS vars", () => {
+  it("normalizes and applies process-outline color and geometry overrides onto their CSS vars", () => {
     const settings = normalizeSettings({
       components: {
-        waterfall: {
+        "process-outline": {
           ink: "#112233",
           rail: "#5D6266",
           noteBg: "#AABBCC",
@@ -1326,7 +1773,7 @@ describe("style rail waterfall tokens", () => {
     });
 
     expect(settings.components).toEqual({
-      waterfall: {
+      "process-outline": {
         ink: "#112233",
         rail: "#5d6266",
         noteBg: "#aabbcc",
@@ -1342,25 +1789,25 @@ describe("style rail waterfall tokens", () => {
       },
     });
     expect(styleRailVars(settings)).toMatchObject({
-      "--docs-waterfall-ink": "#112233",
-      "--docs-waterfall-rail": "#5d6266",
-      "--docs-waterfall-note-bg": "#aabbcc",
-      "--docs-waterfall-code-bg": "#ddeeff",
-      "--docs-waterfall-indent": "48px",
-      "--docs-waterfall-row-gap": "10px",
-      "--docs-waterfall-arrow-gap": "6px",
-      "--docs-waterfall-line-height": "26px",
-      "--docs-waterfall-text-size": "14px",
-      "--docs-waterfall-note-text-size": "13px",
-      "--docs-waterfall-arrow-size": "8px",
-      "--docs-waterfall-stroke": "2px",
+      "--docs-process-outline-ink": "#112233",
+      "--docs-process-outline-rail": "#5d6266",
+      "--docs-process-outline-note-bg": "#aabbcc",
+      "--docs-process-outline-code-bg": "#ddeeff",
+      "--docs-process-outline-indent": "48px",
+      "--docs-process-outline-row-gap": "10px",
+      "--docs-process-outline-arrow-gap": "6px",
+      "--docs-process-outline-line-height": "26px",
+      "--docs-process-outline-text-size": "14px",
+      "--docs-process-outline-note-text-size": "13px",
+      "--docs-process-outline-arrow-size": "8px",
+      "--docs-process-outline-stroke": "2px",
     });
   });
 
   it("removes the geometry overrides when the knobs sit at their defaults", () => {
     const settings = normalizeSettings({
       components: {
-        waterfall: {
+        "process-outline": {
           indent: "36px",
           rowGap: "7px",
           arrowGap: "4px",
@@ -1374,22 +1821,19 @@ describe("style rail waterfall tokens", () => {
     });
 
     const vars = styleRailVars(settings);
-    expect(vars["--docs-waterfall-indent"]).toBeNull();
-    expect(vars["--docs-waterfall-row-gap"]).toBeNull();
-    expect(vars["--docs-waterfall-arrow-gap"]).toBeNull();
-    expect(vars["--docs-waterfall-line-height"]).toBeNull();
-    expect(vars["--docs-waterfall-text-size"]).toBeNull();
-    expect(vars["--docs-waterfall-note-text-size"]).toBeNull();
-    expect(vars["--docs-waterfall-arrow-size"]).toBeNull();
-    expect(vars["--docs-waterfall-stroke"]).toBeNull();
+    expect(vars["--docs-process-outline-indent"]).toBeNull();
+    expect(vars["--docs-process-outline-row-gap"]).toBeNull();
+    expect(vars["--docs-process-outline-arrow-gap"]).toBeNull();
+    expect(vars["--docs-process-outline-line-height"]).toBeNull();
+    expect(vars["--docs-process-outline-text-size"]).toBeNull();
+    expect(vars["--docs-process-outline-note-text-size"]).toBeNull();
+    expect(vars["--docs-process-outline-arrow-size"]).toBeNull();
+    expect(vars["--docs-process-outline-stroke"]).toBeNull();
   });
 
-  it("renders the Waterfall knobs with their sidebar labels", () => {
+  it("renders the Process Outline knobs with their sidebar labels", () => {
     render(<RailHarness />);
-    fireEvent.click(screen.getByRole("button", { name: "Components" }));
-    const toggle = screen.getByRole("button", { name: "Waterfall" });
-    fireEvent.click(toggle);
-    const section = within(toggle.closest("section")!);
+    openPane("Process Outline");
 
     for (const label of [
       "Ink",
@@ -1407,40 +1851,56 @@ describe("style rail waterfall tokens", () => {
       "Arrow size",
       "Stroke",
     ]) {
-      expect(section.getByText(label)).toBeTruthy();
+      expect(screen.getByText(label)).toBeTruthy();
     }
 
-    const indent = section.getByLabelText(/^Indent/) as HTMLInputElement;
+    const indent = screen.getByLabelText(/^Indent/) as HTMLInputElement;
     expect(indent).toHaveProperty("min", "16");
     expect(indent).toHaveProperty("max", "72");
     expect(indent).toHaveProperty("value", "36");
-    const rowGap = section.getByLabelText(/Row gap/) as HTMLInputElement;
+    const rowGap = screen.getByLabelText(/Row gap/) as HTMLInputElement;
     expect(rowGap).toHaveProperty("min", "0");
     expect(rowGap).toHaveProperty("max", "24");
     expect(rowGap).toHaveProperty("value", "7");
-    const arrowGap = section.getByLabelText(/Arrow gap/) as HTMLInputElement;
+    const arrowGap = screen.getByLabelText(/Arrow gap/) as HTMLInputElement;
     expect(arrowGap).toHaveProperty("min", "0");
     expect(arrowGap).toHaveProperty("max", "16");
     expect(arrowGap).toHaveProperty("value", "4");
-    const lineHeight = section.getByLabelText(/Line height/) as HTMLInputElement;
+    const lineHeight = screen.getByLabelText(/Line height/) as HTMLInputElement;
     expect(lineHeight).toHaveProperty("min", "16");
     expect(lineHeight).toHaveProperty("max", "40");
     expect(lineHeight).toHaveProperty("value", "22");
-    const textSize = section.getByLabelText(/^Text size/) as HTMLInputElement;
+    const textSize = screen.getByLabelText(/^Text size/) as HTMLInputElement;
     expect(textSize).toHaveProperty("min", "10");
     expect(textSize).toHaveProperty("max", "18");
     expect(textSize).toHaveProperty("value", "12.5");
-    const noteTextSize = section.getByLabelText(/Note text size/) as HTMLInputElement;
+    const noteTextSize = screen.getByLabelText(/Note text size/) as HTMLInputElement;
     expect(noteTextSize).toHaveProperty("min", "10");
     expect(noteTextSize).toHaveProperty("max", "18");
     expect(noteTextSize).toHaveProperty("value", "12.5");
-    const arrowSize = section.getByLabelText(/Arrow size/) as HTMLInputElement;
+    const arrowSize = screen.getByLabelText(/Arrow size/) as HTMLInputElement;
     expect(arrowSize).toHaveProperty("min", "3");
     expect(arrowSize).toHaveProperty("max", "12");
     expect(arrowSize).toHaveProperty("value", "6");
-    const stroke = section.getByLabelText(/Stroke/) as HTMLInputElement;
+    const stroke = screen.getByLabelText(/Stroke/) as HTMLInputElement;
     expect(stroke).toHaveProperty("min", "0.5");
     expect(stroke).toHaveProperty("max", "4");
     expect(stroke).toHaveProperty("value", "1.5");
+  });
+});
+
+describe("style rail sequence tokens", () => {
+  it("registers the sequence frame border var", () => {
+    expect(THEME_TOKEN_REGISTRY.sequence.border).toEqual({
+      vars: ["--docs-sequence-border"],
+      kind: "color",
+    });
+  });
+
+  it("renders the Sequence pane Border control", () => {
+    render(<RailHarness />);
+    openPane("Sequence");
+
+    expect(screen.getByText("Border")).toBeTruthy();
   });
 });
