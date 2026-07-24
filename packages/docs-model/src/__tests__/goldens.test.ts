@@ -55,7 +55,7 @@ const CORPUS_PATHS = [
   "docs/10-system-design/40-block-vocabulary/60-interaction-surface/doc.json",
   "docs/10-system-design/40-block-vocabulary/70-sequence/doc.json",
   "docs/10-system-design/40-block-vocabulary/80-canvas/doc.json",
-  "docs/10-system-design/40-block-vocabulary/90-waterfall/doc.json",
+  "docs/10-system-design/40-block-vocabulary/90-process-outline/doc.json",
   "docs/10-system-design/50-editor-design/doc.json",
   "docs/10-system-design/50-editor-design/10-reading-surface/doc.json",
   "docs/10-system-design/50-editor-design/20-editing-interactions/doc.json",

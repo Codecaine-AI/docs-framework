@@ -898,7 +898,7 @@
           ],
           [
             "false",
-            "divider, image, video, structured-table, file-tree, state-shape, interaction-surface, sequence, canvas, waterfall",
+            "divider, image, video, structured-table, file-tree, state-shape, interaction-surface, sequence, canvas, process-outline",
             "No text key; all state lives in typed props."
           ]
         ],

@@ -55,7 +55,7 @@ The type registry described in Block design and slash-menu membership are separa
 
   - Video is absent because its authoring path is content-driven: provider URL paste or drop, or a host-backed video file drop.
 
-  - Waterfall is absent.
+  - Process Outline is absent.
 
   - File-tree and interaction-surface are absent.
 

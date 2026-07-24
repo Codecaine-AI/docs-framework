@@ -472,7 +472,7 @@ describe("GET /api/blocks (edit-surface discovery)", () => {
     "state-shape",
     "canvas",
     "sequence",
-    "waterfall",
+    "process-outline",
   ] as const;
   const ACTION_KEYS = [
     "canvas.addAnnotation",
@@ -488,6 +488,11 @@ describe("GET /api/blocks (edit-surface discovery)", () => {
     "interaction-surface.addOperation",
     "interaction-surface.removeOperation",
     "interaction-surface.updateOperation",
+    "process-outline.insertStep",
+    "process-outline.moveStep",
+    "process-outline.removeStep",
+    "process-outline.setStepText",
+    "process-outline.setSteps",
     "sequence.setProgram",
     "sequence.setStyle",
     "sequence.setTitle",
@@ -500,11 +505,6 @@ describe("GET /api/blocks (edit-surface discovery)", () => {
     "structured-table.removeColumn",
     "structured-table.removeRow",
     "structured-table.updateCell",
-    "waterfall.insertStep",
-    "waterfall.moveStep",
-    "waterfall.removeStep",
-    "waterfall.setStepText",
-    "waterfall.setSteps",
   ] as const;
 
   let docsRoot: string;

@@ -3,11 +3,11 @@
 import { Type } from "@sinclair/typebox";
 import { defineComponentAction } from "../../define";
 import { formatStepPath, resolveStep, stepsPatch } from "../lib";
-import { readWaterfallStepTree } from "../state";
+import { readProcessOutlineStepTree } from "../state";
 
 export const setStepText = defineComponentAction({
-  action: "waterfall.setStepText",
-  blockType: "waterfall",
+  action: "process-outline.setStepText",
+  blockType: "process-outline",
   description:
     "Replace the text of the step at an index path (elements walk `steps` from the root; the last element indexes the step among its siblings).",
   params: Type.Object({
@@ -20,7 +20,7 @@ export const setStepText = defineComponentAction({
     }),
   }),
   apply(block, params) {
-    const steps = readWaterfallStepTree(block);
+    const steps = readProcessOutlineStepTree(block);
     const resolved = resolveStep(steps, params.path);
     if (!resolved) {
       return {

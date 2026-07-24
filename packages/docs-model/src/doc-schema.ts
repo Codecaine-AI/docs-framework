@@ -40,7 +40,7 @@ export const DOC_BLOCK_TYPES = [
   "sequence",
   "image",
   "video",
-  "waterfall",
+  "process-outline",
 ] as const;
 
 export type DocBlockType = (typeof DOC_BLOCK_TYPES)[number];

@@ -2,4 +2,4 @@
 
 import { atomBlockNode } from "../../editor/core/node-helpers";
 
-export const DocWaterfall = atomBlockNode("docWaterfall");
+export const DocProcessOutline = atomBlockNode("docProcessOutline");

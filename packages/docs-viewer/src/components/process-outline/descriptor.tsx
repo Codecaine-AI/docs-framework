@@ -1,13 +1,13 @@
 import { createElement } from "react";
-import { readWaterfallSteps } from "@codecaine-ai/docs-model";
+import { readProcessOutlineSteps } from "@codecaine-ai/docs-model";
 import type { DocBlockDescriptor } from "../../render/block-registry";
 import { STRUCTURAL_OPS, blockAttrs, el } from "../../render/descriptor-helpers";
-import { AGENT_DESCRIPTION, LABEL, WaterfallDocsBlock } from "./WaterfallDocsBlock";
+import { AGENT_DESCRIPTION, LABEL, ProcessOutlineDocsBlock } from "./ProcessOutlineDocsBlock";
 
 export const descriptors: DocBlockDescriptor[] = [
   {
-    type: "waterfall",
-    targetKind: "waterfall",
+    type: "process-outline",
+    targetKind: "process-outline",
     label: LABEL,
     agentDescription: AGENT_DESCRIPTION,
     patchOps: STRUCTURAL_OPS,
@@ -15,9 +15,9 @@ export const descriptors: DocBlockDescriptor[] = [
       el(
         "div",
         { key: block.id, ...blockAttrs(block) },
-        createElement(WaterfallDocsBlock, {
+        createElement(ProcessOutlineDocsBlock, {
           id: block.id,
-          steps: readWaterfallSteps(block),
+          steps: readProcessOutlineSteps(block),
         }),
         ctx.renderChildren(block),
       ),

@@ -195,7 +195,7 @@
             "note": "Sequence reference state and lifted forwarded actions."
           },
           {
-            "path": "packages/docs-model/src/components/waterfall/",
+            "path": "packages/docs-model/src/components/process-outline/",
             "note": "Recursive process-step state, actions, and text grammar."
           },
           {

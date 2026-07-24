@@ -3,12 +3,12 @@
 import { Type } from "@sinclair/typebox";
 import { defineComponentAction } from "../../define";
 import { formatStepPath, resolveStepSiblings, stepsPatch } from "../lib";
-import type { WaterfallStep } from "../lib";
-import { readWaterfallStepTree } from "../state";
+import type { ProcessOutlineStep } from "../lib";
+import { readProcessOutlineStepTree } from "../state";
 
 export const insertStep = defineComponentAction({
-  action: "waterfall.insertStep",
-  blockType: "waterfall",
+  action: "process-outline.insertStep",
+  blockType: "process-outline",
   description:
     "Insert a step at an index path: the last element is the insert position among the addressed sibling list, preceding elements walk `steps` from the root.",
   params: Type.Object({
@@ -27,7 +27,7 @@ export const insertStep = defineComponentAction({
     ),
   }),
   apply(block, params) {
-    const steps = readWaterfallStepTree(block);
+    const steps = readProcessOutlineStepTree(block);
     const resolved = resolveStepSiblings(steps, params.path.slice(0, -1));
     if (!resolved) {
       return {
@@ -64,7 +64,7 @@ export const insertStep = defineComponentAction({
       };
     }
 
-    const step: WaterfallStep = { text: params.text };
+    const step: ProcessOutlineStep = { text: params.text };
     if (params.kind === "note") step.kind = "note";
     resolved.siblings.splice(index, 0, step);
     return { ok: true, props: stepsPatch(steps) };

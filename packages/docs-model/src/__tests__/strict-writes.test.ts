@@ -47,7 +47,7 @@ const REPRESENTATIVES: Representative[] = [
     wrongPath: "$.op.props.canvasId",
   },
   {
-    type: "waterfall",
+    type: "process-outline",
     props: { steps: [{ text: "Draft" }] },
     conformingPatch: {
       steps: [{ text: "Draft" }, { text: "Review", kind: "note" }],

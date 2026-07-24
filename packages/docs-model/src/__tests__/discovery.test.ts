@@ -25,7 +25,7 @@ const CARRIES_TEXT = {
   "state-shape": false,
   canvas: false,
   sequence: false,
-  waterfall: false,
+  "process-outline": false,
 } as const;
 
 const ACTION_KEYS = [
@@ -42,6 +42,11 @@ const ACTION_KEYS = [
   "interaction-surface.addOperation",
   "interaction-surface.removeOperation",
   "interaction-surface.updateOperation",
+  "process-outline.insertStep",
+  "process-outline.moveStep",
+  "process-outline.removeStep",
+  "process-outline.setStepText",
+  "process-outline.setSteps",
   "sequence.setProgram",
   "sequence.setStyle",
   "sequence.setTitle",
@@ -54,11 +59,6 @@ const ACTION_KEYS = [
   "structured-table.removeColumn",
   "structured-table.removeRow",
   "structured-table.updateCell",
-  "waterfall.insertStep",
-  "waterfall.moveStep",
-  "waterfall.removeStep",
-  "waterfall.setStepText",
-  "waterfall.setSteps",
 ] as const;
 
 const OP_NAMES = [

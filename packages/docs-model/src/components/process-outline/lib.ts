@@ -1,30 +1,30 @@
 "use client";
 
-/** Stored step-tree node: `kind: "note"` marks a clarification leaf; omitted kind reads as "step". */
-export type WaterfallStep = {
+/** Stored process-outline step: `kind: "note"` marks a clarification leaf. */
+export type ProcessOutlineStep = {
   text: string;
   kind?: "step" | "note";
-  steps?: WaterfallStep[];
+  steps?: ProcessOutlineStep[];
 };
 
 /** Parsed/derived view of a step: `depth` computed from nesting, `note` from kind. */
-export type WaterfallNode = {
+export type ProcessOutlineNode = {
   text: string;
   note: boolean;
   depth: number;
-  children: WaterfallNode[];
+  children: ProcessOutlineNode[];
 };
 
 /**
- * Arrow-tree parser, ported from the waterfall design prototype: a line's
+ * Process-outline parser: a line's
  * depth is the rank of its indent width among the distinct widths seen SO FAR
  * (sorted ascending), so irregular indentation still nests and an already
  * assigned depth never changes when a new width appears later. Returns a
  * forest — multiple roots are allowed.
  */
-export function parseWaterfall(text: string): WaterfallNode[] {
-  const root: WaterfallNode = { text: "", note: false, depth: -1, children: [] };
-  const stack: WaterfallNode[] = [root];
+export function parseProcessOutline(text: string): ProcessOutlineNode[] {
+  const root: ProcessOutlineNode = { text: "", note: false, depth: -1, children: [] };
+  const stack: ProcessOutlineNode[] = [root];
   const indents: number[] = [];
 
   for (const raw of text.split("\n")) {
@@ -38,7 +38,7 @@ export function parseWaterfall(text: string): WaterfallNode[] {
       indents.sort((a, b) => a - b);
       depth = indents.indexOf(indent);
     }
-    const node: WaterfallNode = {
+    const node: ProcessOutlineNode = {
       text: match[3].trimEnd(),
       note: match[2] === ">",
       depth,
@@ -55,16 +55,16 @@ export function parseWaterfall(text: string): WaterfallNode[] {
 /** 5 spaces per nesting level — distinct widths the parser ranks back to the same depths. */
 const INDENT = "     ";
 
-function isNoteLike(item: WaterfallNode | WaterfallStep): boolean {
+function isNoteLike(item: ProcessOutlineNode | ProcessOutlineStep): boolean {
   return "note" in item ? item.note : item.kind === "note";
 }
 
-function childList(item: WaterfallNode | WaterfallStep): readonly (WaterfallNode | WaterfallStep)[] {
+function childList(item: ProcessOutlineNode | ProcessOutlineStep): readonly (ProcessOutlineNode | ProcessOutlineStep)[] {
   return ("children" in item ? item.children : item.steps) ?? [];
 }
 
 function serializeLines(
-  items: readonly (WaterfallNode | WaterfallStep)[],
+  items: readonly (ProcessOutlineNode | ProcessOutlineStep)[],
   depth: number,
 ): string[] {
   return items.flatMap((item) => {
@@ -77,12 +77,12 @@ function serializeLines(
 }
 
 /**
- * Structure → arrow-tree text: root lines bare, nested steps as `-> text`,
- * notes as `> text`. parseWaterfall(serializeWaterfall(x)) round-trips the
+ * Structure → process-outline notation: root lines bare, nested steps as `-> text`,
+ * notes as `> text`. parseProcessOutline(serializeProcessOutline(x)) round-trips the
  * structure (for single-line, non-blank texts — the only kind the parser
  * itself produces).
  */
-export function serializeWaterfall(steps: WaterfallNode[] | WaterfallStep[]): string {
+export function serializeProcessOutline(steps: ProcessOutlineNode[] | ProcessOutlineStep[]): string {
   return serializeLines(steps, 0).join("\n");
 }
 
@@ -91,12 +91,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /** Tolerant recursive read: skips malformed entries, always returns fresh objects. */
-export function readStepTree(raw: unknown): WaterfallStep[] {
+export function readStepTree(raw: unknown): ProcessOutlineStep[] {
   if (!Array.isArray(raw)) return [];
-  const steps: WaterfallStep[] = [];
+  const steps: ProcessOutlineStep[] = [];
   for (const item of raw) {
     if (!isRecord(item) || typeof item.text !== "string") continue;
-    const step: WaterfallStep = { text: item.text };
+    const step: ProcessOutlineStep = { text: item.text };
     if (item.kind === "step" || item.kind === "note") step.kind = item.kind;
     if (Array.isArray(item.steps)) step.steps = readStepTree(item.steps);
     steps.push(step);
@@ -105,20 +105,20 @@ export function readStepTree(raw: unknown): WaterfallStep[] {
 }
 
 /** Builds a plain-JSON step object (recursively) with only the defined keys. */
-export function cloneStep(step: WaterfallStep): WaterfallStep {
-  const out: WaterfallStep = { text: step.text };
+export function cloneStep(step: ProcessOutlineStep): ProcessOutlineStep {
+  const out: ProcessOutlineStep = { text: step.text };
   if (step.kind !== undefined) out.kind = step.kind;
   if (step.steps !== undefined) out.steps = step.steps.map(cloneStep);
   return out;
 }
 
 /** Action patch: replaces the step tree with fresh clones. */
-export function stepsPatch(steps: WaterfallStep[]): Record<string, unknown> {
+export function stepsPatch(steps: ProcessOutlineStep[]): Record<string, unknown> {
   return { steps: steps.map(cloneStep) };
 }
 
 /** Stored steps → derived-view nodes with computed depth. */
-export function stepNodes(steps: readonly WaterfallStep[], depth = 0): WaterfallNode[] {
+export function stepNodes(steps: readonly ProcessOutlineStep[], depth = 0): ProcessOutlineNode[] {
   return steps.map((step) => ({
     text: step.text,
     note: step.kind === "note",
@@ -128,9 +128,9 @@ export function stepNodes(steps: readonly WaterfallStep[], depth = 0): Waterfall
 }
 
 /** Parse output → stored form; `steps` omitted on leaves, kind stored only for notes. */
-export function nodesToSteps(nodes: readonly WaterfallNode[]): WaterfallStep[] {
+export function nodesToSteps(nodes: readonly ProcessOutlineNode[]): ProcessOutlineStep[] {
   return nodes.map((node) => {
-    const step: WaterfallStep = { text: node.text };
+    const step: ProcessOutlineStep = { text: node.text };
     if (node.note) step.kind = "note";
     if (node.children.length > 0) step.steps = nodesToSteps(node.children);
     return step;
@@ -144,11 +144,11 @@ export function nodesToSteps(nodes: readonly WaterfallNode[]): WaterfallStep[] {
  * insert into it. Returns undefined when an element is out of range.
  */
 export function resolveStepSiblings(
-  steps: WaterfallStep[],
+  steps: ProcessOutlineStep[],
   prefix: readonly number[],
-): { siblings: WaterfallStep[]; parent?: WaterfallStep } | undefined {
+): { siblings: ProcessOutlineStep[]; parent?: ProcessOutlineStep } | undefined {
   let siblings = steps;
-  let parent: WaterfallStep | undefined;
+  let parent: ProcessOutlineStep | undefined;
   for (const index of prefix) {
     const node = siblings[index];
     if (!node) return undefined;
@@ -165,9 +165,9 @@ export function resolveStepSiblings(
  * path never resolves — it names the root list, not a step).
  */
 export function resolveStep(
-  steps: WaterfallStep[],
+  steps: ProcessOutlineStep[],
   path: readonly number[],
-): { siblings: WaterfallStep[]; index: number; step: WaterfallStep } | undefined {
+): { siblings: ProcessOutlineStep[]; index: number; step: ProcessOutlineStep } | undefined {
   if (path.length === 0) return undefined;
   const resolved = resolveStepSiblings(steps, path.slice(0, -1));
   if (!resolved) return undefined;

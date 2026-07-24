@@ -140,9 +140,9 @@ describe("projectToMarkdown — the sample fixture", () => {
     const typesInFixture = new Set(
       Object.values(validated.document.blocks).map((b) => b.type),
     );
-    // waterfall stays out of the fixture until the corpus/goldens phase adds it; remove this filter then.
+    // process-outline stays out of the fixture until the corpus/goldens phase adds it; remove this filter then.
     expect([...typesInFixture].sort()).toEqual(
-      DOC_BLOCK_TYPES.filter((type) => type !== "waterfall").sort(),
+      DOC_BLOCK_TYPES.filter((type) => type !== "process-outline").sort(),
     );
   });
 

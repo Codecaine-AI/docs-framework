@@ -19,7 +19,7 @@ import { DocInteractionSurface } from "../../components/interaction-surface/edit
 import { DocStateShape } from "../../components/state-shape/editor-nodes";
 import { DocCanvas } from "../../components/canvas/editor-nodes";
 import { DocSequence } from "../../components/sequence/editor-nodes";
-import { DocWaterfall } from "../../components/waterfall/editor-nodes";
+import { DocProcessOutline } from "../../components/process-outline/editor-nodes";
 import { blockAttrs as sharedBlockAttrs } from "./node-helpers";
 
 export {
@@ -38,7 +38,7 @@ export {
   DocStateShape,
   DocStructuredTable,
   DocVideo,
-  DocWaterfall,
+  DocProcessOutline,
 };
 
 /**
@@ -117,7 +117,7 @@ export const ATOM_BLOCK_TYPES = [
   "structured-table",
   "interaction-surface",
   "state-shape",
-  "waterfall",
+  "process-outline",
 ] as const satisfies readonly DocBlockType[];
 
 /** PM node type name -> doc-schema block type. */
@@ -137,7 +137,7 @@ export const NODE_TYPE_TO_BLOCK_TYPE: Record<string, DocBlockType> = {
   docStructuredTable: "structured-table",
   docInteractionSurface: "interaction-surface",
   docStateShape: "state-shape",
-  docWaterfall: "waterfall",
+  docProcessOutline: "process-outline",
 };
 
 /** Inverse of NODE_TYPE_TO_BLOCK_TYPE — doc-schema block type -> PM node type name. */
@@ -197,5 +197,5 @@ export const ATOM_BLOCK_NODES = [
   DocStructuredTable,
   DocInteractionSurface,
   DocStateShape,
-  DocWaterfall,
+  DocProcessOutline,
 ];

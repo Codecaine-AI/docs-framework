@@ -204,7 +204,7 @@ const PANE_COMPONENT_FILE: Partial<Record<StyleRailPaneId, string>> = {
   "blocks.interaction-surface": "interaction-surface",
   "blocks.state-shape": "state-shape",
   "blocks.linking": "linking",
-  "blocks.waterfall": "waterfall",
+  "blocks.process-outline": "process-outline",
   "blocks.sequence": "sequence",
   "blocks.canvas": "canvas",
   "theme.surfaces": "surfaces",

@@ -58,7 +58,7 @@ describe("block registry", () => {
     expect(getDocBlockDescriptor("structured-table")?.label).toBe("Structured Table");
     expect(getDocBlockDescriptor("interaction-surface")?.label).toBe("Interaction Surface");
     expect(getDocBlockDescriptor("interaction-surface")?.targetKind).toBe("interaction-surface");
-    expect(getDocBlockDescriptor("waterfall")?.label).toBe("Waterfall");
+    expect(getDocBlockDescriptor("process-outline")?.label).toBe("Process Outline");
   });
 
   it("returns null for unknown and retired block types", () => {

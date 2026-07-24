@@ -1,7 +1,7 @@
 /**
  * Post mermaid/flavour-removal reconciliation (2026-07-22):
- * 1. rich-text carriers table: waterfall joins the false row (carriesText
- *    false in waterfall/state.ts).
+ * 1. rich-text carriers table: process-outline joins the false row (carriesText
+ *    false in process-outline/state.ts).
  * 2. 10-document-tree: flavour is no longer a read alias — rejected with a
  *    typed issue; prose updated.
  * 3. 14-callout: coercion prose drops the flavour-aliasing clause.
@@ -33,11 +33,11 @@ function land(path: string, mutate: (doc: any) => void) {
   console.log(`ok ${path}`);
 }
 
-// 1. Carriers table gains waterfall.
+// 1. Carriers table gains process-outline.
 land("docs/10-system-design/40-block-vocabulary/10-rich-text/doc.json", (doc) => {
   const rows = doc.blocks["b-20-rich-text-carriers-table-13"].props.rows;
   rows[2][1] =
-    "divider, image, video, structured-table, file-tree, state-shape, interaction-surface, sequence, canvas, waterfall";
+    "divider, image, video, structured-table, file-tree, state-shape, interaction-surface, sequence, canvas, process-outline";
 });
 
 // 2. Document-tree: flavour prose to post-removal truth.

@@ -3,11 +3,11 @@
 import { Type } from "@sinclair/typebox";
 import { defineComponentAction } from "../../define";
 import { formatStepPath, resolveStep, resolveStepSiblings, stepsPatch } from "../lib";
-import { readWaterfallStepTree } from "../state";
+import { readProcessOutlineStepTree } from "../state";
 
 export const moveStep = defineComponentAction({
-  action: "waterfall.moveStep",
-  blockType: "waterfall",
+  action: "process-outline.moveStep",
+  blockType: "process-outline",
   description:
     "Move the step at `from` (with its subtree) to the insert position `to` — `to` is interpreted against the tree AFTER the step is removed.",
   params: Type.Object({
@@ -22,7 +22,7 @@ export const moveStep = defineComponentAction({
     }),
   }),
   apply(block, params) {
-    const steps = readWaterfallStepTree(block);
+    const steps = readProcessOutlineStepTree(block);
     const origin = resolveStep(steps, params.from);
     if (!origin) {
       return {

@@ -47,7 +47,7 @@ const COMPONENT_PICKER_FILES = [
   "interaction-surface",
   "state-shape",
   "linking",
-  "waterfall",
+  "process-outline",
   "sequence",
   "canvas",
 ] as const;
@@ -62,6 +62,7 @@ const COMPONENT_LABELS: Partial<Record<ComponentPickerFile, string>> = {
   "structured-table": "Structured table",
   "interaction-surface": "Interaction surface",
   "state-shape": "State shape",
+  "process-outline": "Process Outline",
   linking: "Linked panels",
 };
 
@@ -86,7 +87,7 @@ const COMPONENT_ICONS: Record<ComponentPickerFile, LucideIcon> = {
   "interaction-surface": MousePointer2,
   "state-shape": Braces,
   linking: Link,
-  waterfall: GitFork,
+  "process-outline": GitFork,
   sequence: Workflow,
   canvas: PenTool,
 };
@@ -186,7 +187,7 @@ export const STYLE_RAIL_GROUPS: readonly StyleRailNavGroup[] = [
     items: [
       componentItem("sequence"),
       componentItem("canvas"),
-      componentItem("waterfall"),
+      componentItem("process-outline"),
     ],
   },
 ] as const;

@@ -15,7 +15,7 @@ import {
   DocStateShape,
   DocStructuredTable,
   DocVideo,
-  DocWaterfall,
+  DocProcessOutline,
   NODE_TYPE_TO_BLOCK_TYPE,
 } from "../core/schema";
 import { CodeBlockNodeView } from "../../components/code/editor-node-view";
@@ -132,7 +132,7 @@ export const DocStateShapeWithView = DocStateShape.extend({
   },
 });
 
-export const DocWaterfallWithView = DocWaterfall.extend({
+export const DocProcessOutlineWithView = DocProcessOutline.extend({
   addNodeView() {
     return ReactNodeViewRenderer(AtomBlockView);
   },
@@ -149,7 +149,7 @@ export const ATOM_BLOCK_NODES_WITH_VIEWS = [
   DocStructuredTableWithView,
   DocInteractionSurfaceWithView,
   DocStateShapeWithView,
-  DocWaterfallWithView,
+  DocProcessOutlineWithView,
 ];
 
 /**

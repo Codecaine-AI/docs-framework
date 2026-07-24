@@ -16,12 +16,12 @@ packages/
         │   ├── code/  # Code state, line-annotation actions, and agent view.
         │   ├── file-tree/  # Path-entry collection state and actions.
         │   ├── interaction-surface/  # Operation-signature collection state and actions.
+        │   ├── process-outline/  # Recursive process-step state, actions, and text grammar.
         │   ├── rich-text/  # Flow text, callouts, dividers, and media.
         │   ├── sequence/  # Sequence reference state and lifted forwarded actions.
         │   ├── shared/  # Shared field and deterministic JSON-line primitives.
         │   ├── state-shape/  # Recursive field-tree state and actions.
         │   ├── structured-table/  # Canonical cells plus row and column actions.
-        │   ├── waterfall/  # Recursive process-step state, actions, and text grammar.
         │   ├── checks.ts  # Module-load ownership, schema, action, and authority checks.
         │   ├── index.ts  # Explicit bundle allow-list and derived registries.
         │   ├── types.ts  # Manifest, state, action, agent-view, and bundle interfaces.

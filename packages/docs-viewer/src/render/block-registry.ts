@@ -11,7 +11,7 @@ import { descriptors as richTextDescriptors } from "../components/rich-text/desc
 import { descriptors as sequenceDescriptors } from "../components/sequence/descriptor";
 import { descriptors as stateShapeDescriptors } from "../components/state-shape/descriptor";
 import { descriptors as structuredTableDescriptors } from "../components/structured-table/descriptor";
-import { descriptors as waterfallDescriptors } from "../components/waterfall/descriptor";
+import { descriptors as processOutlineDescriptors } from "../components/process-outline/descriptor";
 
 export type DocBlockRenderContext = {
   /** Renders delta spans to inline React (bold/italic/strike/code/link/reference marks). */
@@ -60,7 +60,7 @@ const COMPONENT_DESCRIPTORS: readonly DocBlockDescriptor[][] = [
   stateShapeDescriptors,
   canvasDescriptors,
   sequenceDescriptors,
-  waterfallDescriptors,
+  processOutlineDescriptors,
 ];
 
 function buildRegistry(): Map<DocBlockType, DocBlockDescriptor> {

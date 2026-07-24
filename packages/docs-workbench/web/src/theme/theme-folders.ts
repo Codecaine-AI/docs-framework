@@ -353,20 +353,20 @@ export const THEME_TOKEN_REGISTRY: Record<string, Record<string, ThemeTokenDefin
       defaultValue: 9,
     },
   },
-  // The waterfall's connector rail is drawn as overlapping elbow + stem
+  // The Process Outline connector rail is drawn as overlapping elbow + stem
   // strokes, so the rail color must stay opaque — alpha doubles up at the
   // joins. Deep ink (depth >= 3) derives from ink in semantic.css. Note
   // text size defaults to the step text size in semantic.css (a var()
   // reference), so its registry defaultValue is the same literal number.
-  waterfall: {
-    ink: color("--docs-waterfall-ink"),
-    rail: color("--docs-waterfall-rail"),
-    noteFg: color("--docs-waterfall-note-fg"),
-    noteBg: color("--docs-waterfall-note-bg"),
-    noteBorder: color("--docs-waterfall-note-border"),
-    codeBg: color("--docs-waterfall-code-bg"),
+  "process-outline": {
+    ink: color("--docs-process-outline-ink"),
+    rail: color("--docs-process-outline-rail"),
+    noteFg: color("--docs-process-outline-note-fg"),
+    noteBg: color("--docs-process-outline-note-bg"),
+    noteBorder: color("--docs-process-outline-note-border"),
+    codeBg: color("--docs-process-outline-code-bg"),
     indent: {
-      vars: ["--docs-waterfall-indent"],
+      vars: ["--docs-process-outline-indent"],
       kind: "length",
       min: 16,
       max: 72,
@@ -375,7 +375,7 @@ export const THEME_TOKEN_REGISTRY: Record<string, Record<string, ThemeTokenDefin
       defaultValue: 36,
     },
     rowGap: {
-      vars: ["--docs-waterfall-row-gap"],
+      vars: ["--docs-process-outline-row-gap"],
       kind: "length",
       min: 0,
       max: 24,
@@ -384,7 +384,7 @@ export const THEME_TOKEN_REGISTRY: Record<string, Record<string, ThemeTokenDefin
       defaultValue: 7,
     },
     arrowGap: {
-      vars: ["--docs-waterfall-arrow-gap"],
+      vars: ["--docs-process-outline-arrow-gap"],
       kind: "length",
       min: 0,
       max: 16,
@@ -393,7 +393,7 @@ export const THEME_TOKEN_REGISTRY: Record<string, Record<string, ThemeTokenDefin
       defaultValue: 4,
     },
     lineHeight: {
-      vars: ["--docs-waterfall-line-height"],
+      vars: ["--docs-process-outline-line-height"],
       kind: "length",
       min: 16,
       max: 40,
@@ -402,7 +402,7 @@ export const THEME_TOKEN_REGISTRY: Record<string, Record<string, ThemeTokenDefin
       defaultValue: 22,
     },
     textSize: {
-      vars: ["--docs-waterfall-text-size"],
+      vars: ["--docs-process-outline-text-size"],
       kind: "length",
       min: 10,
       max: 18,
@@ -411,7 +411,7 @@ export const THEME_TOKEN_REGISTRY: Record<string, Record<string, ThemeTokenDefin
       defaultValue: 12.5,
     },
     noteTextSize: {
-      vars: ["--docs-waterfall-note-text-size"],
+      vars: ["--docs-process-outline-note-text-size"],
       kind: "length",
       min: 10,
       max: 18,
@@ -420,7 +420,7 @@ export const THEME_TOKEN_REGISTRY: Record<string, Record<string, ThemeTokenDefin
       defaultValue: 12.5,
     },
     arrowSize: {
-      vars: ["--docs-waterfall-arrow-size"],
+      vars: ["--docs-process-outline-arrow-size"],
       kind: "length",
       min: 3,
       max: 12,
@@ -429,7 +429,7 @@ export const THEME_TOKEN_REGISTRY: Record<string, Record<string, ThemeTokenDefin
       defaultValue: 6,
     },
     stroke: {
-      vars: ["--docs-waterfall-stroke"],
+      vars: ["--docs-process-outline-stroke"],
       kind: "length",
       min: 0.5,
       max: 4,

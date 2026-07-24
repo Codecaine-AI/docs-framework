@@ -56,9 +56,9 @@
       mermaid→callout coercion regression test; "14 canonical types"
       count phrasing dropped; StateShapeDocsBlock JSDoc fixed;
       CASCADE LANDED: CORPUS_PATHS regenerated from disk (62), counts
-      now DISK TRUTH — 16 types / 9 bundles (the parallel waterfall
+      now DISK TRUTH — 16 types / 9 bundles (the parallel process-outline
       thread landed type #16 mid-flight: bundle, registry entry,
-      waterfall.json theme, 90-waterfall page — already contract-shaped
+      process-outline.json theme, 90-process-outline page — already contract-shaped
       — and updated the vocab overview to sixteen/nine itself).
       (2) RICH-TEXT (.tmp/richtext-examples-stateshape.ts): Examples on
       all 5 missing pages; REAL SVG authored for 16-image
@@ -82,7 +82,7 @@
       says so); the worker's mermaid.json was deleted at reconcile.
     - RECONCILE + PIPELINE (2026-07-22, orchestrator,
       .tmp/post-removal-reconcile.ts + .tmp/pkgb-caption-fold.ts):
-      carriers table gained waterfall (false row); 10-document-tree +
+      carriers table gained process-outline (false row); 10-document-tree +
       14-callout flavour prose updated to rejected-not-aliased;
       20-block-design stray invalid file-tree props.title stripped
       (caption → intro para); 50-package-boundaries CANONICALIZED — its
@@ -98,7 +98,7 @@
       clean except known fs-watch.ts. bun install run (lock consistent).
       STALE-DOC NOTES for later walks: 40-theming/20-component-themes
       registry table (3 missing rows incl. linking/state-shape/
-      waterfall, several stale key lists); framework 40-templates
+      process-outline, several stale key lists); framework 40-templates
       Mermaid prose (legacy MDX-era, out of scope); docs-cli migrate
       tests keep "Mermaid" as an unmapped-MDX-tag fixture (fallback
       behavior, deliberate).

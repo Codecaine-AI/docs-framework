@@ -2,10 +2,10 @@
 
 import { describe, expect, it } from "bun:test";
 import type { DocBlock } from "../../../doc-schema";
-import { waterfallAgentView } from "../agent-view";
+import { processOutlineAgentView } from "../agent-view";
 
-function waterfallBlock(props: Record<string, unknown>): DocBlock {
-  return { id: "b1", type: "waterfall", props, children: [] };
+function processOutlineBlock(props: Record<string, unknown>): DocBlock {
+  return { id: "b1", type: "process-outline", props, children: [] };
 }
 
 const CTX = { listDepth: 0, listIndex: 0 };
@@ -35,26 +35,26 @@ const PROJECTED = [
   "          > workers produce tentative evidence",
 ].join("\n");
 
-describe("waterfall component agent view", () => {
-  it("projects the step tree as arrow-tree text in a plain waterfall fence", () => {
-    expect(waterfallAgentView(waterfallBlock({ steps: STEPS }), CTX)).toBe(
-      "```waterfall\n" + PROJECTED + "\n```",
+describe("process-outline component agent view", () => {
+  it("projects the step tree as process-outline text in a plain process-outline fence", () => {
+    expect(processOutlineAgentView(processOutlineBlock({ steps: STEPS }), CTX)).toBe(
+      "```process-outline\n" + PROJECTED + "\n```",
     );
   });
 
   it("projects a single-step tree", () => {
-    expect(waterfallAgentView(waterfallBlock({ steps: [{ text: "Run" }] }), CTX)).toBe(
-      "```waterfall\nRun\n```",
+    expect(processOutlineAgentView(processOutlineBlock({ steps: [{ text: "Run" }] }), CTX)).toBe(
+      "```process-outline\nRun\n```",
     );
   });
 
   it("projects empty or malformed props as an empty fence", () => {
-    expect(waterfallAgentView(waterfallBlock({ steps: [] }), CTX)).toBe("```waterfall\n\n```");
-    expect(waterfallAgentView(waterfallBlock({}), CTX)).toBe("```waterfall\n\n```");
+    expect(processOutlineAgentView(processOutlineBlock({ steps: [] }), CTX)).toBe("```process-outline\n\n```");
+    expect(processOutlineAgentView(processOutlineBlock({}), CTX)).toBe("```process-outline\n\n```");
   });
 
   it("returns null for other block types", () => {
     const block: DocBlock = { id: "b1", type: "paragraph", props: {}, children: [] };
-    expect(waterfallAgentView(block, CTX)).toBeNull();
+    expect(processOutlineAgentView(block, CTX)).toBeNull();
   });
 });

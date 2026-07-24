@@ -4,14 +4,14 @@ import { describe, expect, it } from "bun:test";
 import { Value } from "@sinclair/typebox/value";
 import type { DocBlock } from "../../../doc-schema";
 import {
-  WaterfallState,
-  readWaterfallStepTree,
-  readWaterfallSteps,
-  waterfallState,
+  ProcessOutlineState,
+  readProcessOutlineStepTree,
+  readProcessOutlineSteps,
+  processOutlineState,
 } from "../state";
 
-function waterfallBlock(props: Record<string, unknown>): DocBlock {
-  return { id: "b1", type: "waterfall", props, children: [] };
+function processOutlineBlock(props: Record<string, unknown>): DocBlock {
+  return { id: "b1", type: "process-outline", props, children: [] };
 }
 
 const STEPS = [
@@ -24,48 +24,48 @@ const STEPS = [
   },
 ];
 
-describe("waterfall component state schema", () => {
+describe("process-outline component state schema", () => {
   it("accepts a structured step tree, including the empty one", () => {
-    expect(Value.Check(WaterfallState, { steps: STEPS })).toBe(true);
-    expect(Value.Check(WaterfallState, { steps: [] })).toBe(true);
+    expect(Value.Check(ProcessOutlineState, { steps: STEPS })).toBe(true);
+    expect(Value.Check(ProcessOutlineState, { steps: [] })).toBe(true);
   });
 
   it("accepts explicit step kinds", () => {
     expect(
-      Value.Check(WaterfallState, {
+      Value.Check(ProcessOutlineState, {
         steps: [{ text: "Run", kind: "step" }, { text: "why", kind: "note" }],
       }),
     ).toBe(true);
   });
 
   it("requires steps — the state is literally the list of steps", () => {
-    expect(Value.Check(WaterfallState, {})).toBe(false);
+    expect(Value.Check(ProcessOutlineState, {})).toBe(false);
   });
 
   it("rejects malformed steps", () => {
-    expect(Value.Check(WaterfallState, { steps: [{ text: 42 }] })).toBe(false);
-    expect(Value.Check(WaterfallState, { steps: [{}] })).toBe(false);
-    expect(Value.Check(WaterfallState, { steps: [{ text: "Run", kind: "banana" }] })).toBe(false);
-    expect(Value.Check(WaterfallState, { steps: [{ text: "Run", stray: true }] })).toBe(false);
-    expect(Value.Check(WaterfallState, { steps: [{ text: "Run", steps: [{ text: 1 }] }] })).toBe(
+    expect(Value.Check(ProcessOutlineState, { steps: [{ text: 42 }] })).toBe(false);
+    expect(Value.Check(ProcessOutlineState, { steps: [{}] })).toBe(false);
+    expect(Value.Check(ProcessOutlineState, { steps: [{ text: "Run", kind: "banana" }] })).toBe(false);
+    expect(Value.Check(ProcessOutlineState, { steps: [{ text: "Run", stray: true }] })).toBe(false);
+    expect(Value.Check(ProcessOutlineState, { steps: [{ text: "Run", steps: [{ text: 1 }] }] })).toBe(
       false,
     );
-    expect(Value.Check(WaterfallState, { steps: "Run" })).toBe(false);
+    expect(Value.Check(ProcessOutlineState, { steps: "Run" })).toBe(false);
   });
 
   it("rejects stray root properties — there is no title and no stored text form", () => {
-    expect(Value.Check(WaterfallState, { steps: [], stray: true })).toBe(false);
-    expect(Value.Check(WaterfallState, { steps: [], title: "Run" })).toBe(false);
+    expect(Value.Check(ProcessOutlineState, { steps: [], stray: true })).toBe(false);
+    expect(Value.Check(ProcessOutlineState, { steps: [], title: "Run" })).toBe(false);
   });
 });
 
-describe("waterfall component state check", () => {
+describe("process-outline component state check", () => {
   it("does not carry text", () => {
-    expect(waterfallState.carriesText).toBe(false);
+    expect(processOutlineState.carriesText).toBe(false);
   });
 
   it("flags a note step that has children — notes are leaves", () => {
-    const issues = waterfallState.check!(
+    const issues = processOutlineState.check!(
       {
         steps: [
           {
@@ -85,15 +85,15 @@ describe("waterfall component state check", () => {
   });
 
   it("accepts note leaves and step parents", () => {
-    expect(waterfallState.check!({ steps: STEPS }, "$")).toEqual([]);
-    expect(waterfallState.check!({ steps: [{ text: "why", kind: "note", steps: [] }] }, "$")).toEqual([]);
-    expect(waterfallState.check!({}, "$")).toEqual([]);
+    expect(processOutlineState.check!({ steps: STEPS }, "$")).toEqual([]);
+    expect(processOutlineState.check!({ steps: [{ text: "why", kind: "note", steps: [] }] }, "$")).toEqual([]);
+    expect(processOutlineState.check!({}, "$")).toEqual([]);
   });
 });
 
-describe("waterfall state readers", () => {
+describe("process-outline state readers", () => {
   it("reads steps into depth-annotated nodes", () => {
-    expect(readWaterfallSteps(waterfallBlock({ steps: STEPS }))).toEqual([
+    expect(readProcessOutlineSteps(processOutlineBlock({ steps: STEPS }))).toEqual([
       {
         text: "Run mode",
         note: false,
@@ -114,22 +114,22 @@ describe("waterfall state readers", () => {
   });
 
   it("skips malformed entries tolerantly", () => {
-    const block = waterfallBlock({
+    const block = processOutlineBlock({
       steps: [{ text: "Run", steps: [{ text: 42 }, "junk", { text: "Drain", kind: "weird" }] }, null],
     });
-    const [root] = readWaterfallSteps(block);
+    const [root] = readProcessOutlineSteps(block);
     expect(root.children.map((node) => node.text)).toEqual(["Drain"]);
     expect(root.children[0].note).toBe(false);
   });
 
   it("returns an empty forest when steps are missing or malformed", () => {
-    expect(readWaterfallSteps(waterfallBlock({}))).toEqual([]);
-    expect(readWaterfallSteps(waterfallBlock({ steps: "Run" }))).toEqual([]);
+    expect(readProcessOutlineSteps(processOutlineBlock({}))).toEqual([]);
+    expect(readProcessOutlineSteps(processOutlineBlock({ steps: "Run" }))).toEqual([]);
   });
 
   it("returns fresh objects from the step-tree read", () => {
     const props = { steps: [{ text: "Run", steps: [{ text: "Drain" }] }] };
-    const tree = readWaterfallStepTree(waterfallBlock(props));
+    const tree = readProcessOutlineStepTree(processOutlineBlock(props));
     tree[0].text = "Mutated";
     tree[0].steps![0].text = "Mutated child";
     expect(props.steps[0].text).toBe("Run");

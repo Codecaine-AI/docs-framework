@@ -152,7 +152,7 @@ Whether a type carries delta text is a per-type fact, declared as `carriesText` 
 | --- | --- | --- |
 | true | paragraph, heading, list-item, quote, callout | Prose: marks, links, and reference chips all apply. |
 | true | code | Source payload: the fenced code body; spans are plain inserts. |
-| false | divider, image, video, structured-table, file-tree, state-shape, interaction-surface, sequence, canvas, waterfall | No text key; all state lives in typed props. |
+| false | divider, image, video, structured-table, file-tree, state-shape, interaction-surface, sequence, canvas, process-outline | No text key; all state lives in typed props. |
 
 ## Typed Actions
 

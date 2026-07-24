@@ -3,11 +3,11 @@
 import { Type } from "@sinclair/typebox";
 import { defineComponentAction } from "../../define";
 import { formatStepPath, resolveStep, stepsPatch } from "../lib";
-import { readWaterfallStepTree } from "../state";
+import { readProcessOutlineStepTree } from "../state";
 
 export const removeStep = defineComponentAction({
-  action: "waterfall.removeStep",
-  blockType: "waterfall",
+  action: "process-outline.removeStep",
+  blockType: "process-outline",
   description: "Remove the step at an index path, together with its entire subtree.",
   params: Type.Object({
     path: Type.Array(Type.Integer(), {
@@ -16,7 +16,7 @@ export const removeStep = defineComponentAction({
     }),
   }),
   apply(block, params) {
-    const steps = readWaterfallStepTree(block);
+    const steps = readProcessOutlineStepTree(block);
     const resolved = resolveStep(steps, params.path);
     if (!resolved) {
       return {

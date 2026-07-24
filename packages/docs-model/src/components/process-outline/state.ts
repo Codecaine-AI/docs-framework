@@ -4,9 +4,9 @@ import { Type } from "@sinclair/typebox";
 import type { DocBlock, DocValidationIssue } from "../../doc-schema";
 import type { BlockStateDefinition } from "../types";
 import { readStepTree, stepNodes } from "./lib";
-import type { WaterfallNode, WaterfallStep } from "./lib";
+import type { ProcessOutlineNode, ProcessOutlineStep } from "./lib";
 
-export const WaterfallStepSchema = Type.Recursive(
+export const ProcessOutlineStepSchema = Type.Recursive(
   (This) =>
     Type.Object(
       {
@@ -18,20 +18,20 @@ export const WaterfallStepSchema = Type.Recursive(
       },
       { additionalProperties: false },
     ),
-  { $id: "WaterfallStep" },
+  { $id: "ProcessOutlineStep" },
 );
 
-/** The block is literally the list of steps — an empty array is a legal empty waterfall. */
-export const WaterfallState = Type.Object(
+/** The block is the ordered step forest; an empty array is a legal empty outline. */
+export const ProcessOutlineState = Type.Object(
   {
-    steps: Type.Array(WaterfallStepSchema),
+    steps: Type.Array(ProcessOutlineStepSchema),
   },
   { additionalProperties: false },
 );
 
 /** Notes are leaves — a `kind: "note"` step must not carry child steps. */
 function checkNoteLeaves(
-  steps: readonly WaterfallStep[],
+  steps: readonly ProcessOutlineStep[],
   basePath: string,
   issues: DocValidationIssue[],
 ): void {
@@ -46,22 +46,22 @@ function checkNoteLeaves(
   });
 }
 
-export const waterfallState: BlockStateDefinition = {
-  schema: WaterfallState,
+export const processOutlineState: BlockStateDefinition = {
+  schema: ProcessOutlineState,
   carriesText: false,
   check(props, basePath) {
     const issues: DocValidationIssue[] = [];
-    checkNoteLeaves((props.steps ?? []) as WaterfallStep[], `${basePath}.steps`, issues);
+    checkNoteLeaves((props.steps ?? []) as ProcessOutlineStep[], `${basePath}.steps`, issues);
     return issues;
   },
 };
 
 /** Step tree for actions/serialization. Tolerant, always fresh objects. */
-export function readWaterfallStepTree(block: DocBlock): WaterfallStep[] {
+export function readProcessOutlineStepTree(block: DocBlock): ProcessOutlineStep[] {
   return readStepTree(block.props.steps);
 }
 
 /** Derived-node view of the same tree, with computed depths. */
-export function readWaterfallSteps(block: DocBlock): WaterfallNode[] {
-  return stepNodes(readWaterfallStepTree(block));
+export function readProcessOutlineSteps(block: DocBlock): ProcessOutlineNode[] {
+  return stepNodes(readProcessOutlineStepTree(block));
 }

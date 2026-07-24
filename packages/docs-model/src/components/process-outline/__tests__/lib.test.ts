@@ -3,15 +3,15 @@
 import { describe, expect, it } from "bun:test";
 import {
   nodesToSteps,
-  parseWaterfall,
-  serializeWaterfall,
+  parseProcessOutline,
+  serializeProcessOutline,
   stepNodes,
 } from "../lib";
-import type { WaterfallStep } from "../lib";
+import type { ProcessOutlineStep } from "../lib";
 
-describe("parseWaterfall", () => {
+describe("parseProcessOutline", () => {
   it("ranks irregular indentation widths and builds nested steps", () => {
-    expect(parseWaterfall(
+    expect(parseProcessOutline(
       "Run mode\n  -> Get candidates\n       -> Exclude locked work\n  -> Drain workers\n       -> Spawn workers",
     )).toEqual([
       {
@@ -41,7 +41,7 @@ describe("parseWaterfall", () => {
   });
 
   it("marks clarification notes without keeping the marker", () => {
-    const [root] = parseWaterfall("Run\n  -> Drain\n       > workers produce tentative evidence");
+    const [root] = parseProcessOutline("Run\n  -> Drain\n       > workers produce tentative evidence");
     expect(root.children[0].children[0]).toEqual({
       text: "workers produce tentative evidence",
       note: true,
@@ -51,26 +51,26 @@ describe("parseWaterfall", () => {
   });
 
   it("supports multiple roots", () => {
-    expect(parseWaterfall("First\n  -> Child\nSecond\n  -> Other").map((node) => node.text)).toEqual([
+    expect(parseProcessOutline("First\n  -> Child\nSecond\n  -> Other").map((node) => node.text)).toEqual([
       "First",
       "Second",
     ]);
   });
 
   it("skips blank lines", () => {
-    const forest = parseWaterfall("\nRun\n   \n  -> Drain\n\t\n");
+    const forest = parseProcessOutline("\nRun\n   \n  -> Drain\n\t\n");
     expect(forest).toHaveLength(1);
     expect(forest[0].children).toHaveLength(1);
   });
 
   it("preserves backticks in node text", () => {
-    const [root] = parseWaterfall("Run `safe` mode\n  -> Read `epoch-size`");
+    const [root] = parseProcessOutline("Run `safe` mode\n  -> Read `epoch-size`");
     expect(root.text).toBe("Run `safe` mode");
     expect(root.children[0].text).toBe("Read `epoch-size`");
   });
 
   it("ranks indent widths in order seen, so the first line is depth 0 even when indented", () => {
-    const forest = parseWaterfall("  Indented first\nRoot later");
+    const forest = parseProcessOutline("  Indented first\nRoot later");
     expect(forest.map((node) => ({ text: node.text, depth: node.depth }))).toEqual([
       { text: "Indented first", depth: 0 },
       { text: "Root later", depth: 0 },
@@ -78,7 +78,7 @@ describe("parseWaterfall", () => {
   });
 
   it("keeps an assigned depth when a smaller nonzero indent appears later", () => {
-    const [root] = parseWaterfall("Root\n       -> Deeper first\n  -> Shallower later");
+    const [root] = parseProcessOutline("Root\n       -> Deeper first\n  -> Shallower later");
     expect(root.children.map((node) => ({ text: node.text, depth: node.depth }))).toEqual([
       { text: "Deeper first", depth: 1 },
       { text: "Shallower later", depth: 1 },
@@ -86,7 +86,7 @@ describe("parseWaterfall", () => {
   });
 
   it("re-ranks later lines once a new smaller indent width is known", () => {
-    const [root] = parseWaterfall("Root\n       -> A\n  -> B\n       -> C");
+    const [root] = parseProcessOutline("Root\n       -> A\n  -> B\n       -> C");
     const a = root.children[0];
     const b = root.children[1];
     expect(a).toEqual({ text: "A", note: false, depth: 1, children: [] });
@@ -96,9 +96,9 @@ describe("parseWaterfall", () => {
   });
 });
 
-describe("serializeWaterfall", () => {
+describe("serializeProcessOutline", () => {
   it("emits bare roots, arrowed children at 5 spaces per level, and > notes", () => {
-    const steps: WaterfallStep[] = [
+    const steps: ProcessOutlineStep[] = [
       {
         text: "Run mode",
         steps: [
@@ -108,7 +108,7 @@ describe("serializeWaterfall", () => {
       },
       { text: "Second root" },
     ];
-    expect(serializeWaterfall(steps)).toBe(
+    expect(serializeProcessOutline(steps)).toBe(
       [
         "Run mode",
         "     -> Get candidates",
@@ -119,18 +119,18 @@ describe("serializeWaterfall", () => {
     );
   });
 
-  it("serializes WaterfallNode input identically to its WaterfallStep twin", () => {
+  it("serializes ProcessOutlineNode input identically to its ProcessOutlineStep twin", () => {
     const notation = "Run\n  -> Drain `epoch`\n       > why";
-    const nodes = parseWaterfall(notation);
-    expect(serializeWaterfall(nodes)).toBe(serializeWaterfall(nodesToSteps(nodes)));
+    const nodes = parseProcessOutline(notation);
+    expect(serializeProcessOutline(nodes)).toBe(serializeProcessOutline(nodesToSteps(nodes)));
   });
 
   it("serializes a root-level note with the bare > marker", () => {
-    expect(serializeWaterfall([{ text: "just context", kind: "note" }])).toBe("> just context");
+    expect(serializeProcessOutline([{ text: "just context", kind: "note" }])).toBe("> just context");
   });
 
   it("serializes an empty forest to empty text", () => {
-    expect(serializeWaterfall([])).toBe("");
+    expect(serializeProcessOutline([])).toBe("");
   });
 });
 
@@ -149,7 +149,7 @@ describe("serialize/parse round-trip", () => {
 
   const WORDS = ["run", "drain", "spawn", "`epoch`", "map", "verify", "queue", "lock"];
 
-  function randomSteps(rand: () => number, depth: number): WaterfallStep[] {
+  function randomSteps(rand: () => number, depth: number): ProcessOutlineStep[] {
     const count = 1 + Math.floor(rand() * 3);
     return Array.from({ length: count }, () => {
       const text = Array.from(
@@ -157,7 +157,7 @@ describe("serialize/parse round-trip", () => {
         () => WORDS[Math.floor(rand() * WORDS.length)],
       ).join(" ");
       const note = depth > 0 && rand() < 0.2;
-      const step: WaterfallStep = { text };
+      const step: ProcessOutlineStep = { text };
       if (note) step.kind = "note";
       else if (depth < 3 && rand() < 0.6) step.steps = randomSteps(rand, depth + 1);
       return step;
@@ -168,13 +168,13 @@ describe("serialize/parse round-trip", () => {
     const rand = mulberry32(2026);
     for (let run = 0; run < 40; run += 1) {
       const steps = randomSteps(rand, 0);
-      expect(parseWaterfall(serializeWaterfall(steps))).toEqual(stepNodes(steps));
+      expect(parseProcessOutline(serializeProcessOutline(steps))).toEqual(stepNodes(steps));
     }
   });
 
   it("round-trips parse output through nodesToSteps and back", () => {
     const notation = "Run mode\n  -> Get candidates\n       -> Exclude locked work\n       > why\n  -> Drain";
-    const nodes = parseWaterfall(notation);
-    expect(parseWaterfall(serializeWaterfall(nodesToSteps(nodes)))).toEqual(nodes);
+    const nodes = parseProcessOutline(notation);
+    expect(parseProcessOutline(serializeProcessOutline(nodesToSteps(nodes)))).toEqual(nodes);
   });
 });

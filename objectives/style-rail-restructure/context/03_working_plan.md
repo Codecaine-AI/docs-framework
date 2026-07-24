@@ -147,7 +147,7 @@
               viewer styles, (b) registry tokens/vars, (c) panel controls,
               (d) theme component file presence. Diff all four.
             - Known row 1: `sequence` — define its token set from the vars its
-              styles consume (align with structured-table/waterfall
+              styles consume (align with structured-table/process-outline
               conventions), add registry entry, picker entry, and
               themes/default/components/sequence.json.
             - For every other row, classify gaps: missing-token (var consumed

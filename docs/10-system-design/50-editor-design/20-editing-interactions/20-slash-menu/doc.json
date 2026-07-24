@@ -353,7 +353,7 @@
         "b-slsh-omissions-deliberate",
         "b-slsh-omissions-table",
         "b-slsh-omissions-video",
-        "b-slsh-omissions-waterfall",
+        "b-slsh-omissions-process-outline",
         "b-slsh-omissions-structural"
       ]
     },
@@ -390,13 +390,13 @@
       ],
       "children": []
     },
-    "b-slsh-omissions-waterfall": {
-      "id": "b-slsh-omissions-waterfall",
+    "b-slsh-omissions-process-outline": {
+      "id": "b-slsh-omissions-process-outline",
       "type": "list-item",
       "props": {},
       "text": [
         {
-          "insert": "Waterfall is absent."
+          "insert": "Process Outline is absent."
         }
       ],
       "children": []

@@ -90,7 +90,7 @@ const EXPECTED_NAV_GROUPS = [
     items: [
       { id: "blocks.sequence", label: "Sequence" },
       { id: "blocks.canvas", label: "Canvas" },
-      { id: "blocks.waterfall", label: "Waterfall" },
+      { id: "blocks.process-outline", label: "Process Outline" },
     ],
   },
 ] as const;
@@ -201,7 +201,7 @@ describe("style rail override helpers", () => {
       "blocks.interaction-surface": 0,
       "blocks.state-shape": 0,
       "blocks.linking": 0,
-      "blocks.waterfall": 0,
+      "blocks.process-outline": 0,
       "blocks.sequence": 0,
       "blocks.canvas": 0,
       "layout.sidebar": 0,
@@ -1666,17 +1666,17 @@ describe("style rail state-shape tokens", () => {
   });
 });
 
-describe("style rail waterfall tokens", () => {
-  it("registers every waterfall var under the waterfall entry", () => {
-    const entry = THEME_TOKEN_REGISTRY.waterfall;
-    expect(entry.ink).toEqual({ vars: ["--docs-waterfall-ink"], kind: "color" });
-    expect(entry.rail).toEqual({ vars: ["--docs-waterfall-rail"], kind: "color" });
-    expect(entry.noteFg).toEqual({ vars: ["--docs-waterfall-note-fg"], kind: "color" });
-    expect(entry.noteBg).toEqual({ vars: ["--docs-waterfall-note-bg"], kind: "color" });
-    expect(entry.noteBorder).toEqual({ vars: ["--docs-waterfall-note-border"], kind: "color" });
-    expect(entry.codeBg).toEqual({ vars: ["--docs-waterfall-code-bg"], kind: "color" });
+describe("style rail process-outline tokens", () => {
+  it("registers every process-outline var under the process-outline entry", () => {
+    const entry = THEME_TOKEN_REGISTRY["process-outline"];
+    expect(entry.ink).toEqual({ vars: ["--docs-process-outline-ink"], kind: "color" });
+    expect(entry.rail).toEqual({ vars: ["--docs-process-outline-rail"], kind: "color" });
+    expect(entry.noteFg).toEqual({ vars: ["--docs-process-outline-note-fg"], kind: "color" });
+    expect(entry.noteBg).toEqual({ vars: ["--docs-process-outline-note-bg"], kind: "color" });
+    expect(entry.noteBorder).toEqual({ vars: ["--docs-process-outline-note-border"], kind: "color" });
+    expect(entry.codeBg).toEqual({ vars: ["--docs-process-outline-code-bg"], kind: "color" });
     expect(entry.indent).toEqual({
-      vars: ["--docs-waterfall-indent"],
+      vars: ["--docs-process-outline-indent"],
       kind: "length",
       min: 16,
       max: 72,
@@ -1685,7 +1685,7 @@ describe("style rail waterfall tokens", () => {
       defaultValue: 36,
     });
     expect(entry.rowGap).toEqual({
-      vars: ["--docs-waterfall-row-gap"],
+      vars: ["--docs-process-outline-row-gap"],
       kind: "length",
       min: 0,
       max: 24,
@@ -1694,7 +1694,7 @@ describe("style rail waterfall tokens", () => {
       defaultValue: 7,
     });
     expect(entry.arrowGap).toEqual({
-      vars: ["--docs-waterfall-arrow-gap"],
+      vars: ["--docs-process-outline-arrow-gap"],
       kind: "length",
       min: 0,
       max: 16,
@@ -1703,7 +1703,7 @@ describe("style rail waterfall tokens", () => {
       defaultValue: 4,
     });
     expect(entry.lineHeight).toEqual({
-      vars: ["--docs-waterfall-line-height"],
+      vars: ["--docs-process-outline-line-height"],
       kind: "length",
       min: 16,
       max: 40,
@@ -1712,7 +1712,7 @@ describe("style rail waterfall tokens", () => {
       defaultValue: 22,
     });
     expect(entry.textSize).toEqual({
-      vars: ["--docs-waterfall-text-size"],
+      vars: ["--docs-process-outline-text-size"],
       kind: "length",
       min: 10,
       max: 18,
@@ -1723,7 +1723,7 @@ describe("style rail waterfall tokens", () => {
     // Note text size defaults to the step text size (semantic.css keeps the
     // var() reference); the registry default is the same literal number.
     expect(entry.noteTextSize).toEqual({
-      vars: ["--docs-waterfall-note-text-size"],
+      vars: ["--docs-process-outline-note-text-size"],
       kind: "length",
       min: 10,
       max: 18,
@@ -1732,7 +1732,7 @@ describe("style rail waterfall tokens", () => {
       defaultValue: 12.5,
     });
     expect(entry.arrowSize).toEqual({
-      vars: ["--docs-waterfall-arrow-size"],
+      vars: ["--docs-process-outline-arrow-size"],
       kind: "length",
       min: 3,
       max: 12,
@@ -1741,7 +1741,7 @@ describe("style rail waterfall tokens", () => {
       defaultValue: 6,
     });
     expect(entry.stroke).toEqual({
-      vars: ["--docs-waterfall-stroke"],
+      vars: ["--docs-process-outline-stroke"],
       kind: "length",
       min: 0.5,
       max: 4,
@@ -1751,10 +1751,10 @@ describe("style rail waterfall tokens", () => {
     });
   });
 
-  it("normalizes and applies waterfall color and geometry overrides onto their CSS vars", () => {
+  it("normalizes and applies process-outline color and geometry overrides onto their CSS vars", () => {
     const settings = normalizeSettings({
       components: {
-        waterfall: {
+        "process-outline": {
           ink: "#112233",
           rail: "#5D6266",
           noteBg: "#AABBCC",
@@ -1773,7 +1773,7 @@ describe("style rail waterfall tokens", () => {
     });
 
     expect(settings.components).toEqual({
-      waterfall: {
+      "process-outline": {
         ink: "#112233",
         rail: "#5d6266",
         noteBg: "#aabbcc",
@@ -1789,25 +1789,25 @@ describe("style rail waterfall tokens", () => {
       },
     });
     expect(styleRailVars(settings)).toMatchObject({
-      "--docs-waterfall-ink": "#112233",
-      "--docs-waterfall-rail": "#5d6266",
-      "--docs-waterfall-note-bg": "#aabbcc",
-      "--docs-waterfall-code-bg": "#ddeeff",
-      "--docs-waterfall-indent": "48px",
-      "--docs-waterfall-row-gap": "10px",
-      "--docs-waterfall-arrow-gap": "6px",
-      "--docs-waterfall-line-height": "26px",
-      "--docs-waterfall-text-size": "14px",
-      "--docs-waterfall-note-text-size": "13px",
-      "--docs-waterfall-arrow-size": "8px",
-      "--docs-waterfall-stroke": "2px",
+      "--docs-process-outline-ink": "#112233",
+      "--docs-process-outline-rail": "#5d6266",
+      "--docs-process-outline-note-bg": "#aabbcc",
+      "--docs-process-outline-code-bg": "#ddeeff",
+      "--docs-process-outline-indent": "48px",
+      "--docs-process-outline-row-gap": "10px",
+      "--docs-process-outline-arrow-gap": "6px",
+      "--docs-process-outline-line-height": "26px",
+      "--docs-process-outline-text-size": "14px",
+      "--docs-process-outline-note-text-size": "13px",
+      "--docs-process-outline-arrow-size": "8px",
+      "--docs-process-outline-stroke": "2px",
     });
   });
 
   it("removes the geometry overrides when the knobs sit at their defaults", () => {
     const settings = normalizeSettings({
       components: {
-        waterfall: {
+        "process-outline": {
           indent: "36px",
           rowGap: "7px",
           arrowGap: "4px",
@@ -1821,19 +1821,19 @@ describe("style rail waterfall tokens", () => {
     });
 
     const vars = styleRailVars(settings);
-    expect(vars["--docs-waterfall-indent"]).toBeNull();
-    expect(vars["--docs-waterfall-row-gap"]).toBeNull();
-    expect(vars["--docs-waterfall-arrow-gap"]).toBeNull();
-    expect(vars["--docs-waterfall-line-height"]).toBeNull();
-    expect(vars["--docs-waterfall-text-size"]).toBeNull();
-    expect(vars["--docs-waterfall-note-text-size"]).toBeNull();
-    expect(vars["--docs-waterfall-arrow-size"]).toBeNull();
-    expect(vars["--docs-waterfall-stroke"]).toBeNull();
+    expect(vars["--docs-process-outline-indent"]).toBeNull();
+    expect(vars["--docs-process-outline-row-gap"]).toBeNull();
+    expect(vars["--docs-process-outline-arrow-gap"]).toBeNull();
+    expect(vars["--docs-process-outline-line-height"]).toBeNull();
+    expect(vars["--docs-process-outline-text-size"]).toBeNull();
+    expect(vars["--docs-process-outline-note-text-size"]).toBeNull();
+    expect(vars["--docs-process-outline-arrow-size"]).toBeNull();
+    expect(vars["--docs-process-outline-stroke"]).toBeNull();
   });
 
-  it("renders the Waterfall knobs with their sidebar labels", () => {
+  it("renders the Process Outline knobs with their sidebar labels", () => {
     render(<RailHarness />);
-    openPane("Waterfall");
+    openPane("Process Outline");
 
     for (const label of [
       "Ink",

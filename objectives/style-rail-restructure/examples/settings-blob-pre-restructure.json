@@ -119,7 +119,7 @@
     "surfaces": {
       "border": "#8f8f8f"
     },
-    "waterfall": {
+    "process-outline": {
       "stroke": "1.5px",
       "arrowSize": "7px",
       "rowGap": "9px",

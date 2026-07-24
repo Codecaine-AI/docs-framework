@@ -187,25 +187,25 @@
   --docs-zebra: color-mix(in srgb, var(--muted) 20%, transparent);
   --docs-link-bg: color-mix(in srgb, var(--docs-link-pin) 14%, transparent);
   --docs-link-pin: #b48f2e;
-  /* Waterfall block (docs-viewer waterfall/WaterfallDocsBlock). The rail is
+  /* Process Outline block (docs-viewer process-outline/ProcessOutlineDocsBlock). The rail is
      OPAQUE on purpose — the elbow and stem strokes overlap where sublayers
      stack, so any alpha doubles up at the joins. Deep ink (depth >= 3 lines)
      derives from ink so the two track together. */
-  --docs-waterfall-ink: var(--docs-viewer-text-body);
-  --docs-waterfall-deep-ink: color-mix(in srgb, var(--docs-waterfall-ink) 78%, transparent);
-  --docs-waterfall-rail: #b3b1ad;
-  --docs-waterfall-note-fg: var(--docs-waterfall-ink);
-  --docs-waterfall-note-bg: transparent;
-  --docs-waterfall-note-border: var(--border);
-  --docs-waterfall-code-bg: var(--muted);
-  --docs-waterfall-indent: 36px;
-  --docs-waterfall-row-gap: 7px;
-  --docs-waterfall-arrow-gap: 4px;
-  --docs-waterfall-line-height: 22px;
-  --docs-waterfall-text-size: 12.5px;
-  --docs-waterfall-note-text-size: var(--docs-waterfall-text-size);
-  --docs-waterfall-arrow-size: 6px;
-  --docs-waterfall-stroke: 1.5px;
+  --docs-process-outline-ink: var(--docs-viewer-text-body);
+  --docs-process-outline-deep-ink: color-mix(in srgb, var(--docs-process-outline-ink) 78%, transparent);
+  --docs-process-outline-rail: #b3b1ad;
+  --docs-process-outline-note-fg: var(--docs-process-outline-ink);
+  --docs-process-outline-note-bg: transparent;
+  --docs-process-outline-note-border: var(--border);
+  --docs-process-outline-code-bg: var(--muted);
+  --docs-process-outline-indent: 36px;
+  --docs-process-outline-row-gap: 7px;
+  --docs-process-outline-arrow-gap: 4px;
+  --docs-process-outline-line-height: 22px;
+  --docs-process-outline-text-size: 12.5px;
+  --docs-process-outline-note-text-size: var(--docs-process-outline-text-size);
+  --docs-process-outline-arrow-size: 6px;
+  --docs-process-outline-stroke: 1.5px;
   --docs-canvas-border: var(--border);
   /* Side-peek panel + inline doc-reference chip (docs-viewer DocPeekPanel /
      reference chip); color tokens stay references so they track the theme. */
@@ -391,25 +391,25 @@
   --docs-zebra: color-mix(in srgb, var(--muted) 20%, transparent);
   --docs-link-bg: color-mix(in srgb, var(--docs-link-pin) 18%, transparent);
   --docs-link-pin: #d4af4a;
-  /* Waterfall block (docs-viewer waterfall/WaterfallDocsBlock). The rail is
+  /* Process Outline block (docs-viewer process-outline/ProcessOutlineDocsBlock). The rail is
      OPAQUE on purpose — the elbow and stem strokes overlap where sublayers
      stack, so any alpha doubles up at the joins. Deep ink (depth >= 3 lines)
      derives from ink so the two track together. */
-  --docs-waterfall-ink: var(--docs-viewer-text-body);
-  --docs-waterfall-deep-ink: color-mix(in srgb, var(--docs-waterfall-ink) 78%, transparent);
-  --docs-waterfall-rail: #5d6266;
-  --docs-waterfall-note-fg: var(--docs-waterfall-ink);
-  --docs-waterfall-note-bg: transparent;
-  --docs-waterfall-note-border: var(--border);
-  --docs-waterfall-code-bg: var(--muted);
-  --docs-waterfall-indent: 36px;
-  --docs-waterfall-row-gap: 7px;
-  --docs-waterfall-arrow-gap: 4px;
-  --docs-waterfall-line-height: 22px;
-  --docs-waterfall-text-size: 12.5px;
-  --docs-waterfall-note-text-size: var(--docs-waterfall-text-size);
-  --docs-waterfall-arrow-size: 6px;
-  --docs-waterfall-stroke: 1.5px;
+  --docs-process-outline-ink: var(--docs-viewer-text-body);
+  --docs-process-outline-deep-ink: color-mix(in srgb, var(--docs-process-outline-ink) 78%, transparent);
+  --docs-process-outline-rail: #5d6266;
+  --docs-process-outline-note-fg: var(--docs-process-outline-ink);
+  --docs-process-outline-note-bg: transparent;
+  --docs-process-outline-note-border: var(--border);
+  --docs-process-outline-code-bg: var(--muted);
+  --docs-process-outline-indent: 36px;
+  --docs-process-outline-row-gap: 7px;
+  --docs-process-outline-arrow-gap: 4px;
+  --docs-process-outline-line-height: 22px;
+  --docs-process-outline-text-size: 12.5px;
+  --docs-process-outline-note-text-size: var(--docs-process-outline-text-size);
+  --docs-process-outline-arrow-size: 6px;
+  --docs-process-outline-stroke: 1.5px;
   --docs-canvas-border: var(--border);
   /* Side-peek panel + inline doc-reference chip (docs-viewer DocPeekPanel /
      reference chip); color tokens stay references so they track the theme. */
