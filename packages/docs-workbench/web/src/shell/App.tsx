@@ -387,6 +387,7 @@ export function App() {
           // the host can only map docs-root-relative srcs to fetchable URLs.
           resolveAssetSrc={assetUrl}
         />
+
         {/* Hidden entirely on a theme-locked serve (rail + its collapse
             tab): the rail IS the authoring surface, and locked viewers only
             consume. The grain overlay below is part of the theme's look,
