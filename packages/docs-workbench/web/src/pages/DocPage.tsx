@@ -9,10 +9,11 @@ import {
 import { MessageSquareIcon, PencilIcon, Undo2Icon } from "lucide-react";
 import type { DocDocument } from "@codecaine-ai/docs-model/doc-schema";
 import type { DocOp } from "@codecaine-ai/docs-model/doc-ops";
-import type {
-  AnnotationIntent,
-  AnnotationTarget,
-  AnnotationsDocument,
+import {
+  docsAnnotationSchema,
+  type AnnotationIntent,
+  type AnnotationTarget,
+  type AnnotationsDocument,
 } from "@codecaine-ai/docs-model/annotations-schema";
 import DocBlockRenderer, {
   // Shared with the side-peek panel so the two surfaces cannot drift apart.
@@ -22,8 +23,13 @@ import DocBlockRenderer, {
 import DocEditor, {
   type DocEditorSaveState,
 } from "@codecaine-ai/docs-viewer/editor/doc-editor";
-import DocTargetingLayer from "@codecaine-ai/docs-viewer/doc-targeting-layer";
+import { getDocBlockDescriptor } from "@codecaine-ai/docs-viewer";
 import type { PlannotatorSelection } from "@codecaine-ai/docs-viewer/plannotator";
+import {
+  AnnotationComposerPopover,
+  useTargeting,
+  type ResolvedTarget,
+} from "@codecaine-ai/annotations/react";
 import { useTransientHighlights } from "@codecaine-ai/docs-viewer/use-transient-highlights";
 import {
   resolveBundleAssetSrc,
@@ -49,6 +55,7 @@ import {
   type BacklinkRow,
 } from "../data/api";
 import { docSegmentFromTitle, docTitleFromPath } from "../lib/doc-title";
+import { blockTextRangeFromDomRange } from "../lib/annotate-range";
 import { ActionPane } from "./ActionPane";
 import { StandaloneCanvasEmbed } from "./CanvasEmbed";
 import { StandaloneSequenceEmbed } from "./SequenceEmbed";
@@ -65,10 +72,13 @@ import { StandaloneSequenceEmbed } from "./SequenceEmbed";
  *    DocsClient provided in App.tsx. The header shows a subtle
  *    Saving…/Saved/Not saved indicator, and the "Referenced by" backlinks
  *    footer renders below the editor.
- *  - ANNOTATE: Plannotator over blocks and canvas objects — click a
- *    `[data-block-id]` wrapper or a canvas object to select it, compose a
- *    annotation in the side pane, resolve from the list. Dangling targets are
- *    detected against the live doc + a lazily-fetched canvas object index.
+ *  - ANNOTATE: the shared annotation targeting UX over blocks, text ranges,
+ *    and canvas objects — hovering glides a dotted ring + label chip over
+ *    the block; clicking pins it and opens the anchored composer popover
+ *    (every annotation is an agent request); Cmd/Ctrl+drag pins a text
+ *    range inside a block. The side pane is the list-only thread view
+ *    (resolve, dangling-target handling). Dangling targets are detected
+ *    against the live doc + a lazily-fetched canvas object index.
  *
  * Live changes: an `/api/events` SSE subscription refreshes the open bundle
  * when ANOTHER actor changes it (self-echoes are filtered by session id in
@@ -99,6 +109,46 @@ function cssEscape(value: string): string {
     ? CSS.escape(value)
     : value.replace(/"/g, '\\"');
 }
+
+/** Hover-chip text preview: whitespace-collapsed, truncated like the old layer's. */
+function truncateLabelText(text: string, max = 42): string {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  return normalized.length > max ? `${normalized.slice(0, max)}...` : normalized;
+}
+
+/** The pinned selection as the annotation target it submits. */
+function selectionToTarget(selection: PlannotatorSelection): AnnotationTarget {
+  if (selection.kind === "block") return { kind: "block", blockId: selection.blockId };
+  if (selection.kind === "text-range") {
+    return {
+      kind: "text-range",
+      blockId: selection.blockId,
+      start: selection.start,
+      end: selection.end,
+      quote: selection.quote,
+    };
+  }
+  return {
+    kind: "canvas-object",
+    canvasSrc: selection.canvasSrc,
+    objectId: selection.objectId,
+    connectionId: selection.connectionId,
+    region: selection.region,
+  };
+}
+
+/**
+ * Annotate-mode cursor affordance: blocks read as pick targets. Text stays
+ * natively selectable — the Cmd/Ctrl+drag range flow reads the DOM selection
+ * on release.
+ */
+const ANNOTATE_CURSOR_CSS = `
+  [data-annotation-targeting="true"] [data-block-id] {
+    cursor: crosshair;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+`;
 
 /** Ids of canvas blocks in `doc` whose resolved src equals `canvasSrc`. */
 function canvasBlockIdsForSrc(
@@ -371,16 +421,6 @@ export function DocPage({
     };
   }, [highlightedIds, bundle, canvasEpoch, mode]);
 
-  // Selected-annotation-target ring (annotate mode): the targeting layer
-  // renders the ring overlay from this id ([data-block-id] or
-  // [data-canvas-object-id]); null clears it (e.g. composer cancel).
-  const selectedTargetId =
-    selection == null
-      ? null
-      : selection.kind === "block"
-        ? selection.blockId
-        : (selection.objectId ?? selection.connectionId ?? null);
-
   // ---------------------------------------------------------------------
   // Canvas object index (dangling-target detection for Plannotator)
   // ---------------------------------------------------------------------
@@ -535,7 +575,7 @@ export function DocPage({
       const container = contentRef.current;
       const ids: string[] = [];
       let scrollTo: Element | null = null;
-      if (target.kind === "block") {
+      if (target.kind === "block" || target.kind === "text-range") {
         ids.push(target.blockId);
         scrollTo = container?.querySelector(`[data-block-id="${cssEscape(target.blockId)}"]`) ?? null;
       } else {
@@ -648,19 +688,166 @@ export function DocPage({
     setSaveState("saved");
   }, []);
 
-  // Block selection via the framework targeting layer (hover chip +
-  // pinpoint click). Canvas-object selection stays on the canvas embed's own
-  // object-select surface (onCanvasObjectSelect below) — the layer
-  // intentionally ignores clicks on [data-canvas-object-id] elements.
+  // ---------------------------------------------------------------------
+  // Annotate mode — shared targeting layer + anchored composer popover
+  // ---------------------------------------------------------------------
+  //
+  // The annotation UX standard (see prompt-kit's lab): a dotted glide ring +
+  // label chip follow the hovered block; clicking pins the target and opens
+  // AnnotationComposerPopover anchored beside it (every annotation is an
+  // agent request — no intent picker); Cmd/Ctrl+drag selects a text range
+  // inside a block. Canvas-object selection stays on the canvas embed's own
+  // object-select surface (onCanvasObjectSelect below) — the layer resolves
+  // [data-canvas-object-id] hovers for the ring/chip but leaves their clicks
+  // to the embed; either path lands in the same pinned `selection`.
   const docRef = useRef(doc);
   docRef.current = doc;
-  const handleTargetSelect = useCallback(
-    (target: { label: string; anchor: { block_id?: string | null } }) => {
-      const blockId = target.anchor.block_id;
-      if (!blockId || !docRef.current?.blocks[blockId]) return;
-      setSelection({ kind: "block", blockId, label: target.label });
+  const selectionRef = useRef(selection);
+  selectionRef.current = selection;
+  const annotateActive = !isStatic && mode === "annotate";
+  // The targeting hook owns its containerRef; this mirror lets callbacks
+  // passed INTO the hook (resolve/selected/anchors) reach the same element.
+  const annotateContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const resolveAnnotateTarget = useCallback(
+    (element: HTMLElement): ResolvedTarget<PlannotatorSelection> | null => {
+      const currentDoc = docRef.current;
+      if (!currentDoc) return null;
+      const canvasEl = element.closest<HTMLElement>("[data-canvas-object-id]");
+      if (canvasEl) {
+        const objectId = canvasEl.getAttribute("data-canvas-object-id");
+        const embeddingId = canvasEl
+          .closest<HTMLElement>("[data-block-id]")
+          ?.getAttribute("data-block-id");
+        const embedding = embeddingId ? currentDoc.blocks[embeddingId] : undefined;
+        const src =
+          embedding && embedding.type === "canvas" && typeof embedding.props?.src === "string"
+            ? embedding.props.src
+            : null;
+        if (!objectId || !src) return null;
+        const canvasSrc = resolveBundleCanvasSrc(pathRef.current, src);
+        const label = `Canvas object ${objectId}`;
+        return {
+          elements: [canvasEl],
+          target: { kind: "canvas-object", canvasSrc, objectId, label },
+          label,
+        };
+      }
+      const blockEl = element.closest<HTMLElement>("[data-block-id]");
+      const blockId = blockEl?.getAttribute("data-block-id");
+      const block = blockId ? currentDoc.blocks[blockId] : undefined;
+      if (!blockEl || !blockId || !block) return null;
+      // Chip label mirrors the old layer's: registry descriptor label plus a
+      // truncated text preview when the block has one.
+      const typeLabel = getDocBlockDescriptor(block.type)?.label ?? block.type;
+      const preview = truncateLabelText(blockEl.textContent ?? "");
+      const label = preview ? `${typeLabel}: ${preview}` : typeLabel;
+      return { elements: [blockEl], target: { kind: "block", blockId, label }, label };
     },
     [],
+  );
+
+  const handleAnnotateTargetSelect = useCallback(
+    (resolved: ResolvedTarget<PlannotatorSelection>) => {
+      // Canvas-object clicks are pinned by the embed's own onObjectSelect
+      // path (which has the authoritative object identity); the layer only
+      // supplies their hover affordance.
+      if (resolved.target.kind === "canvas-object") return;
+      setSelection(resolved.target);
+    },
+    [],
+  );
+
+  const handleAnnotateRangeSelect = useCallback(({ range }: { range: Range; text: string }) => {
+    const mapped = blockTextRangeFromDomRange(range);
+    if (!mapped || !docRef.current?.blocks[mapped.blockId]) return;
+    setSelection({ kind: "text-range", ...mapped });
+  }, []);
+
+  // Selected ring + composer anchor elements for the pinned target: block
+  // and text-range targets ring their block element; canvas objects ring the
+  // object's element, falling back to the embedding canvas block.
+  const resolveSelectedElements = useCallback((): HTMLElement[] | null => {
+    const container = annotateContainerRef.current;
+    const current = selectionRef.current;
+    if (!container || !current) return null;
+    if (current.kind === "block" || current.kind === "text-range") {
+      const el = container.querySelector<HTMLElement>(
+        `[data-block-id="${cssEscape(current.blockId)}"]`,
+      );
+      return el ? [el] : null;
+    }
+    const objectId = current.objectId ?? current.connectionId;
+    if (objectId) {
+      const el = container.querySelector<HTMLElement>(
+        `[data-canvas-object-id="${cssEscape(objectId)}"]`,
+      );
+      if (el) return [el];
+    }
+    const currentDoc = docRef.current;
+    if (currentDoc) {
+      for (const embeddingId of canvasBlockIdsForSrc(
+        currentDoc,
+        pathRef.current,
+        current.canvasSrc,
+      )) {
+        const el = container.querySelector<HTMLElement>(
+          `[data-block-id="${cssEscape(embeddingId)}"]`,
+        );
+        if (el) return [el];
+      }
+    }
+    return null;
+  }, []);
+
+  const targeting = useTargeting<PlannotatorSelection>({
+    active: annotateActive,
+    resolveTarget: resolveAnnotateTarget,
+    onTargetSelect: handleAnnotateTargetSelect,
+    onRangeSelect: handleAnnotateRangeSelect,
+    // Annotate mode is the selector; text-range selection requires holding
+    // Cmd (Ctrl on non-mac). A plain drag neither pins nor opens anything.
+    rangeModifier: "meta",
+    resolveSelected: resolveSelectedElements,
+    resolveToken: `${annotateActive}:${bundle?.hash ?? "none"}:${canvasEpoch}:${
+      selection ? JSON.stringify(selection) : "none"
+    }`,
+    // While the composer popover is open the hover ring/chip would chase the
+    // pointer underneath it; the pinned selected ring is affordance enough.
+    suppressHover: selection !== null,
+  });
+
+  // Composer popover anchors, re-read from the committed DOM (effect, not
+  // render) so post-refresh elements are the ones measured.
+  const [composerAnchors, setComposerAnchors] = useState<HTMLElement[] | null>(null);
+  useEffect(() => {
+    if (!annotateActive || !selection) {
+      setComposerAnchors(null);
+      return;
+    }
+    setComposerAnchors(resolveSelectedElements());
+  }, [annotateActive, selection, bundle, canvasEpoch, resolveSelectedElements]);
+
+  const composerTargetLabel = useMemo(() => {
+    if (!selection) return "";
+    return selection.label ?? docsAnnotationSchema.targetLabel(selectionToTarget(selection));
+  }, [selection]);
+
+  // Popover submit: every annotation is an agent request. `handleAddAnnotation`
+  // throws on failure, which the popover catches and displays inline — the
+  // pinned selection then survives for a retry.
+  const handleComposerSubmit = useCallback(
+    async ({ body }: { body: string; intent: string }) => {
+      const current = selectionRef.current;
+      if (!current) return;
+      await handleAddAnnotation({
+        target: selectionToTarget(current),
+        body,
+        intent: "agent-request",
+      });
+      setSelection(null);
+    },
+    [handleAddAnnotation],
   );
 
   if (isLoading) {
@@ -818,15 +1005,24 @@ export function DocPage({
                 />
               </div>
             ) : (
-              <DocTargetingLayer
-                mode="pinpoint"
-                contentHash={bundle?.hash ?? null}
-                documentPath={`docs/${path}`}
-                document={doc}
-                canvasIndex={canvasIndex}
-                selectedTargetId={selectedTargetId}
-                onTargetSelect={handleTargetSelect}
-                className={DOC_SURFACE_TYPOGRAPHY_CLASSES}
+              /* Shared targeting container: hover glide-ring/chip, live drag
+                 ring, selected ring, and the anchored composer popover all
+                 render inside this position:relative div. */
+              <div
+                ref={(element) => {
+                  annotateContainerRef.current = element;
+                  targeting.containerRef.current = element;
+                }}
+                {...targeting.containerProps}
+                // Escape closes the anchored composer and drops the pinned
+                // target (the popover itself has no Escape handling).
+                onKeyDown={(event) => {
+                  if (event.key === "Escape" && selectionRef.current) {
+                    event.stopPropagation();
+                    setSelection(null);
+                  }
+                }}
+                className={cn("relative", DOC_SURFACE_TYPOGRAPHY_CLASSES)}
               >
                 <DocBlockRenderer
                   document={doc}
@@ -835,10 +1031,26 @@ export function DocPage({
                   bundlePath={path}
                   resolveAssetSrc={resolveAssetSrc}
                   onCanvasObjectSelect={({ canvasSrc, objectId }) =>
-                    setSelection({ kind: "canvas-object", canvasSrc, objectId })
+                    setSelection({
+                      kind: "canvas-object",
+                      canvasSrc,
+                      objectId,
+                      label: `Canvas object ${objectId}`,
+                    })
                   }
                 />
-              </DocTargetingLayer>
+                {targeting.overlays}
+                {selection && (
+                  <AnnotationComposerPopover
+                    anchorElements={composerAnchors}
+                    targetLabel={composerTargetLabel}
+                    onSubmit={handleComposerSubmit}
+                    onCancel={() => setSelection(null)}
+                    isSubmitting={isAnnotationSubmitting}
+                  />
+                )}
+                <style>{ANNOTATE_CURSOR_CSS}</style>
+              </div>
             )}
 
             {(isStatic || mode === "edit") && backlinks.length > 0 && (

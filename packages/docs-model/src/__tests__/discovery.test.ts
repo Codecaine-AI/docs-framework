@@ -29,10 +29,11 @@ const CARRIES_TEXT = {
 } as const;
 
 const ACTION_KEYS = [
-  "canvas.addAnnotation",
   "canvas.addConnection",
   "canvas.addObject",
-  "canvas.fitContainerToChildren",
+  "canvas.removeConnection",
+  "canvas.removeObject",
+  "canvas.updateConnection",
   "canvas.updateObject",
   "code.removeAnnotation",
   "code.setAnnotation",
@@ -124,7 +125,7 @@ describe("buildBlocksDiscovery", () => {
     }
   });
 
-  it("serves the five canvas actions in lifted descriptor order", () => {
+  it("serves the six canvas actions in lifted descriptor order", () => {
     const canvas = buildBlocksDiscovery().components.find(
       (component) => component.name === "canvas",
     );
@@ -132,9 +133,10 @@ describe("buildBlocksDiscovery", () => {
     expect(canvas?.actions.map((entry) => entry.action)).toEqual([
       "canvas.addObject",
       "canvas.updateObject",
+      "canvas.removeObject",
       "canvas.addConnection",
-      "canvas.addAnnotation",
-      "canvas.fitContainerToChildren",
+      "canvas.updateConnection",
+      "canvas.removeConnection",
     ]);
   });
 

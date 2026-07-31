@@ -18,6 +18,7 @@
     "test": "bun test src web/src"
   },
   "dependencies": {
+    "@codecaine-ai/annotations": "workspace:*",
     "@codecaine-ai/canvas": "workspace:*",
     "@codecaine-ai/docs-index": "workspace:*",
     "@codecaine-ai/docs-model": "workspace:*",

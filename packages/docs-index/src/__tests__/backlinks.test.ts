@@ -17,7 +17,7 @@ import {
   type BacklinkRef,
 } from "../backlinks";
 import type { DocDocument } from "@codecaine-ai/docs-model/doc-schema";
-import type { InteractiveCanvasDocument } from "@codecaine-ai/canvas/schema";
+import type { CanvasDocumentWithLinks } from "../canvas-links";
 
 describe("backlinks: CRUD against :memory:", () => {
   let db: Database;
@@ -141,7 +141,7 @@ describe("backlinks: pure extractors", () => {
   });
 
   test("extractCanvasRefs walks canvas.links keyed by owning objectId", () => {
-    const canvas: InteractiveCanvasDocument = {
+    const canvas: CanvasDocumentWithLinks = {
       schemaVersion: 1,
       id: "canvas-1",
       mode: "diagram",
@@ -231,7 +231,7 @@ describe("backlinks: rescanAll against a fixture docsRoot", () => {
     } as unknown as DocDocument;
     await writeFile(join(docsRoot, "c", "doc.json"), JSON.stringify(docC));
 
-    const canvas: InteractiveCanvasDocument = {
+    const canvas: CanvasDocumentWithLinks = {
       schemaVersion: 1,
       id: "canvas-c",
       mode: "diagram",
@@ -347,7 +347,7 @@ function docAFixture(): DocDocument {
   } as unknown as DocDocument;
 }
 
-function canvasFixture(): InteractiveCanvasDocument {
+function canvasFixture(): CanvasDocumentWithLinks {
   return {
     schemaVersion: 1,
     id: "canvas-c",

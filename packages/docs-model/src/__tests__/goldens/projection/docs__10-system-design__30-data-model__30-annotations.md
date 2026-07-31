@@ -50,7 +50,7 @@ Annotation ids follow the same stable-ASCII id rule as block ids and must be uni
 | field | shape | meaning |
 | --- | --- | --- |
 | id | stable ASCII id, unique in the sidecar | Identity for resolve/edit flows. |
-| target | block | canvas-object | What the annotation is about; see targets below. |
+| target | block | canvas-object | text-range | What the annotation is about; see targets below. |
 | body | string | The request — what should change. |
 | intent | "note" | "agent-request" | Margin note vs work item for an agent. |
 | author | non-empty string | Who wrote it. |
@@ -71,6 +71,8 @@ A target addresses anything a reader can point at. The annotation shape is the s
 
   - A span inside a block's text: offsets plus the quoted text and its surrounding context, so the anchor can re-attach after edits.
 
+  - The sidecar's text-range target (`blockId` plus `start`/`end` offsets into the block's rendered text and the quoted slice) is this kind's persisted form today; a drifted quote surfaces as dangling rather than re-anchoring.
+
 - `visual_point`
 
   - A coordinate on a visual surface — a spot on a canvas or an image.
@@ -81,7 +83,7 @@ A target addresses anything a reader can point at. The annotation shape is the s
 
   - The sidecar's canvas-object target (`canvasSrc` plus exactly one selector: `objectId`, `connectionId`, or a region rectangle) is this kind's persisted form today.
 
-The shape never specializes: an annotation on a sequence diagram looks exactly like an annotation on a paragraph. Special cases are handled at processing time by the type's agent adapter. The sidecar schema persists block and canvas-object targets today; the remaining kinds land additively, under the same optional-fields growth rule.
+The shape never specializes: an annotation on a sequence diagram looks exactly like an annotation on a paragraph. Special cases are handled at processing time by the type's agent adapter. The sidecar schema persists block, canvas-object, and text-range targets today; the remaining kinds land additively, under the same optional-fields growth rule.
 
 ## The Lifecycle
 

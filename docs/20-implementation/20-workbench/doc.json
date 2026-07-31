@@ -394,7 +394,7 @@
       "props": {},
       "text": [
         {
-          "insert": "docs-viewer emits stable block targets; the injected canvas embed emits canvas-object targets."
+          "insert": "docs-viewer emits stable block targets, Cmd/Ctrl+drag over a block's text emits text-range targets, and the injected canvas embed emits canvas-object targets."
         }
       ],
       "children": []

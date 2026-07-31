@@ -14,7 +14,19 @@
     "noEmit": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "types": ["bun"]
+    "types": ["bun"],
+    // Pin React types to this repo's single copy. The bun-linked
+    // @codecaine-ai/annotations package ships source and carries its own
+    // @types/react in its node_modules; without the pin, tsc loads both
+    // copies and their nominal pieces (e.g. VoidOrUndefinedOnly's unique
+    // symbol in ref cleanup types) can never satisfy each other.
+    "paths": {
+      "react": ["./node_modules/@types/react"],
+      "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime"],
+      "react/jsx-dev-runtime": ["./node_modules/@types/react/jsx-dev-runtime"],
+      "react-dom": ["./node_modules/@types/react-dom"],
+      "react-dom/client": ["./node_modules/@types/react-dom/client"]
+    }
   },
   "include": [
     "packages/docs-model/src/**/*",

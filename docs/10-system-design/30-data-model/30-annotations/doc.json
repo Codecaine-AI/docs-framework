@@ -156,7 +156,7 @@
           ],
           [
             "target",
-            "block | canvas-object",
+            "block | canvas-object | text-range",
             "What the annotation is about; see targets below."
           ],
           [
@@ -262,7 +262,8 @@
         }
       ],
       "children": [
-        "b-ann2-tk-range-s1"
+        "b-ann2-tk-range-s1",
+        "b-ann2-tk-range-s2"
       ]
     },
     "b-ann2-tk-range-s1": {
@@ -272,6 +273,44 @@
       "text": [
         {
           "insert": "A span inside a block's text: offsets plus the quoted text and its surrounding context, so the anchor can re-attach after edits."
+        }
+      ],
+      "children": []
+    },
+    "b-ann2-tk-range-s2": {
+      "id": "b-ann2-tk-range-s2",
+      "type": "list-item",
+      "props": {},
+      "text": [
+        {
+          "insert": "The sidecar's text-range target ("
+        },
+        {
+          "insert": "blockId",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " plus "
+        },
+        {
+          "insert": "start",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": "/"
+        },
+        {
+          "insert": "end",
+          "attributes": {
+            "code": true
+          }
+        },
+        {
+          "insert": " offsets into the block's rendered text and the quoted slice) is this kind's persisted form today; a drifted quote surfaces as dangling rather than re-anchoring."
         }
       ],
       "children": []
@@ -387,7 +426,7 @@
           }
         },
         {
-          "insert": ". The sidecar schema persists block and canvas-object targets today; the remaining kinds land additively, under the same optional-fields growth rule."
+          "insert": ". The sidecar schema persists block, canvas-object, and text-range targets today; the remaining kinds land additively, under the same optional-fields growth rule."
         }
       ],
       "children": []

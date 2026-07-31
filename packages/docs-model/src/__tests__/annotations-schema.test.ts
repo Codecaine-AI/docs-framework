@@ -287,6 +287,133 @@ describe("annotations schema", () => {
     });
   });
 
+  it("accepts a valid text-range annotation", () => {
+    const value: AnnotationsDocument = {
+      schemaVersion: 1,
+      annotations: [
+        {
+          id: "r1",
+          target: { kind: "text-range", blockId: "b1", start: 3, end: 8, quote: "lo fr" },
+          body: "Reword this",
+          intent: "agent-request",
+          author: "Ford",
+          status: "open",
+          createdAt: "2026-07-30T00:00:00.000Z",
+        },
+      ],
+    };
+
+    const result = validateAnnotationsDocument(value);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.document.annotations).toEqual(value.annotations);
+    }
+  });
+
+  it("rejects text-range targets with bad offsets or an empty quote", () => {
+    const base = {
+      body: "One",
+      intent: "note",
+      author: "Ford",
+      status: "open",
+      createdAt: "2026-07-30T00:00:00.000Z",
+    };
+    const result = validateAnnotationsDocument({
+      schemaVersion: 1,
+      annotations: [
+        // end <= start
+        { id: "c1", target: { kind: "text-range", blockId: "b1", start: 5, end: 5, quote: "x" }, ...base },
+        // negative / non-integer start
+        { id: "c2", target: { kind: "text-range", blockId: "b1", start: -1, end: 4, quote: "x" }, ...base },
+        { id: "c3", target: { kind: "text-range", blockId: "b1", start: 1.5, end: 4, quote: "x" }, ...base },
+        // empty quote
+        { id: "c4", target: { kind: "text-range", blockId: "b1", start: 0, end: 4, quote: "" }, ...base },
+        // missing blockId
+        { id: "c5", target: { kind: "text-range", start: 0, end: 4, quote: "x" }, ...base },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      const paths = result.issues.map((issue) => issue.path);
+      expect(paths).toContain("$.annotations[0].target.end");
+      expect(paths).toContain("$.annotations[1].target.start");
+      expect(paths).toContain("$.annotations[2].target.start");
+      expect(paths).toContain("$.annotations[3].target.quote");
+      expect(paths).toContain("$.annotations[4].target.blockId");
+    }
+  });
+
+  it("reports the three-kind message for an unknown target kind", () => {
+    const result = validateAnnotationsDocument({
+      schemaVersion: 1,
+      annotations: [
+        {
+          id: "c1",
+          target: { kind: "mystery" },
+          body: "One",
+          intent: "note",
+          author: "Ford",
+          status: "open",
+          createdAt: "2026-07-30T00:00:00.000Z",
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.issues).toContainEqual({
+        path: "$.annotations[0].target.kind",
+        message: "Annotation target kind must be block or canvas-object or text-range.",
+      });
+    }
+  });
+
+  it("detects dangling text-range targets: missing block, quote drift; existence-only for text-less blocks", () => {
+    const docWithText: DocDocument = {
+      schemaVersion: 1,
+      id: "doc2",
+      root: "root",
+      blocks: {
+        root: { id: "root", type: "paragraph", props: {}, children: ["p1", "img1"] },
+        p1: {
+          id: "p1",
+          type: "paragraph",
+          props: {},
+          text: [{ insert: "Hello " }, { insert: "world", attributes: { bold: true } }],
+          children: [],
+        },
+        img1: { id: "img1", type: "image", props: { src: "a.png" }, children: [] },
+      },
+    };
+    const base = {
+      body: "x",
+      intent: "agent-request" as const,
+      author: "Ford",
+      status: "open" as const,
+      createdAt: "2026-07-30T00:00:00.000Z",
+    };
+    const annotations: AnnotationsDocument = {
+      schemaVersion: 1,
+      annotations: [
+        // Quote still present (normalized containment across spans).
+        { id: "ok", target: { kind: "text-range", blockId: "p1", start: 4, end: 8, quote: "o wo" }, ...base },
+        // Block gone entirely.
+        { id: "gone-block", target: { kind: "text-range", blockId: "zap", start: 0, end: 2, quote: "He" }, ...base },
+        // Quote drifted out of the block's text.
+        { id: "drifted", target: { kind: "text-range", blockId: "p1", start: 0, end: 7, quote: "Goodbye" }, ...base },
+        // Text-less block: existence-only, never dangling while it exists.
+        { id: "no-text", target: { kind: "text-range", blockId: "img1", start: 0, end: 3, quote: "alt" }, ...base },
+      ],
+    };
+
+    expect(detectDanglingTargets(annotations, docWithText, {})).toEqual([
+      { annotationId: "gone-block", reason: 'Block "zap" no longer exists.' },
+      { annotationId: "drifted", reason: 'Quoted text no longer appears in block "p1".' },
+    ]);
+  });
+
   it("skips canvas-target checks while the canvas index is not loaded (undefined/null), but still runs block checks", () => {
     const annotations: AnnotationsDocument = {
       schemaVersion: 1,

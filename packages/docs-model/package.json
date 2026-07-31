@@ -17,6 +17,7 @@
     "./fixtures/sample.doc.json": "./src/__fixtures__/sample.doc.json"
   },
   "dependencies": {
+    "@codecaine-ai/annotations": "workspace:*",
     "@codecaine-ai/canvas": "workspace:*",
     "@codecaine-ai/sequence": "workspace:*",
     "@sinclair/typebox": "^0.34"

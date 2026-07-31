@@ -38,6 +38,9 @@ const SAMPLE_DOC = {
   },
 };
 
+// NOTE: shaped to match the live canvas validator's normalized output exactly
+// (field order included) so byte-level undo comparisons hold: the undo path
+// persists the validated prior snapshot, not the raw input bytes.
 const SAMPLE_CANVAS = {
   schemaVersion: 1,
   id: "flow",
@@ -46,13 +49,12 @@ const SAMPLE_CANVAS = {
     {
       id: "obj-1",
       type: "process",
-      label: "Step one",
+      text: "Step one",
       parentId: null,
       geometry: { x: 0, y: 0, width: 120, height: 64 },
     },
   ],
   connections: [],
-  links: [],
   annotations: [],
 };
 
@@ -64,7 +66,7 @@ const ADD_OBJECT_OP = {
     object: {
       id: "obj-2",
       type: "process",
-      label: "Step two",
+      text: "Step two",
       geometry: { x: 200, y: 0, width: 120, height: 64 },
     },
   },
@@ -172,21 +174,21 @@ describe("POST /api/ops forwarded canvas actions", () => {
     }
   });
 
-  test("forwards updateObject and persists the patched label", async () => {
+  test("forwards updateObject and persists the patched text", async () => {
     const response = await postJson("/api/ops", {
       path: BUNDLE_PATH,
       ops: [{
         type: "componentAction",
         blockId: "canvas-1",
         action: "canvas.updateObject",
-        params: { objectId: "obj-1", patch: { label: "Updated step" } },
+        params: { objectId: "obj-1", patch: { text: "Updated step" } },
       }],
     });
     expect(response.status).toBe(200);
     const body = (await response.json()) as { canvas_hash: string };
     const persistedBytes = await readFile(join(docsRoot, CANVAS_REL_PATH), "utf8");
-    const persisted = JSON.parse(persistedBytes) as { objects: Array<{ id: string; label: string }> };
-    expect(persisted.objects.find((object) => object.id === "obj-1")?.label).toBe("Updated step");
+    const persisted = JSON.parse(persistedBytes) as { objects: Array<{ id: string; text: string }> };
+    expect(persisted.objects.find((object) => object.id === "obj-1")?.text).toBe("Updated step");
     expect(body.canvas_hash).toBe(createContentHash(persistedBytes));
   });
 
@@ -195,7 +197,7 @@ describe("POST /api/ops forwarded canvas actions", () => {
     canvas.objects.push({
       id: "obj-2",
       type: "process",
-      label: "Step two",
+      text: "Step two",
       parentId: null,
       geometry: { x: 200, y: 0, width: 120, height: 64 },
     });
@@ -212,7 +214,7 @@ describe("POST /api/ops forwarded canvas actions", () => {
             id: "obj-1-to-obj-2",
             from: { objectId: "obj-1", anchor: "right" },
             to: { objectId: "obj-2", anchor: "left" },
-            style: "elbow",
+            style: "dashed",
             arrow: "forward",
           },
         },
@@ -226,13 +228,16 @@ describe("POST /api/ops forwarded canvas actions", () => {
       id: "obj-1-to-obj-2",
       from: { objectId: "obj-1", anchor: "right" },
       to: { objectId: "obj-2", anchor: "left" },
-      style: "elbow",
+      style: "dashed",
       arrow: "forward",
     }]);
     expect(body.canvas_hash).toBe(createContentHash(persistedBytes));
   });
 
-  test("forwards an object-targeted addAnnotation and persists it", async () => {
+  test("rejects canvas.addAnnotation now that it is not a lifted canvas action", async () => {
+    // The live canvas package's lifted action roster no longer includes
+    // addAnnotation (annotations flow through their own tools), so an
+    // unregistered componentAction falls through to doc-op validation.
     const response = await postJson("/api/ops", {
       path: BUNDLE_PATH,
       ops: [{
@@ -251,38 +256,31 @@ describe("POST /api/ops forwarded canvas actions", () => {
         },
       }],
     });
-    expect(response.status).toBe(200);
-    const body = (await response.json()) as { canvas_hash: string };
-    const persistedBytes = await readFile(join(docsRoot, CANVAS_REL_PATH), "utf8");
-    const persisted = JSON.parse(persistedBytes) as { annotations: unknown[] };
-    expect(persisted.annotations).toEqual([{
-      id: "review-obj-1",
-      target: { kind: "object", objectId: "obj-1" },
-      body: "Review this step.",
-      intent: "note",
-      status: "open",
-      createdBy: "agent",
-    }]);
-    expect(body.canvas_hash).toBe(createContentHash(persistedBytes));
+    expect(response.status).toBeGreaterThanOrEqual(400);
+    expect(response.status).toBeLessThan(500);
+    expect(await readFile(join(docsRoot, CANVAS_REL_PATH), "utf8")).toBe(initialCanvasBytes);
   });
 
-  test("forwards fitContainerToChildren and persists changed container geometry", async () => {
+  test("forwards removeObject and persists the connection cascade", async () => {
     const canvas = structuredClone(SAMPLE_CANVAS);
     canvas.objects = [
       {
-        id: "container-1",
-        type: "container",
-        label: "Container",
+        id: "obj-1",
+        type: "process",
+        text: "Step one",
         parentId: null,
-        geometry: { x: 0, y: 0, width: 500, height: 500 },
+        geometry: { x: 0, y: 0, width: 120, height: 64 },
       },
       {
-        id: "child-1",
+        id: "obj-2",
         type: "process",
-        label: "Child",
-        parentId: "container-1",
-        geometry: { x: 100, y: 120, width: 120, height: 64 },
+        text: "Step two",
+        parentId: null,
+        geometry: { x: 200, y: 0, width: 120, height: 64 },
       },
+    ];
+    canvas.connections = [
+      { id: "conn-1", from: { objectId: "obj-1" }, to: { objectId: "obj-2" } },
     ];
     await writeFile(join(docsRoot, CANVAS_REL_PATH), `${JSON.stringify(canvas, null, 2)}\n`, "utf8");
 
@@ -291,22 +289,19 @@ describe("POST /api/ops forwarded canvas actions", () => {
       ops: [{
         type: "componentAction",
         blockId: "canvas-1",
-        action: "canvas.fitContainerToChildren",
-        params: { containerId: "container-1", padding: 20 },
+        action: "canvas.removeObject",
+        params: { objectId: "obj-2" },
       }],
     });
     expect(response.status).toBe(200);
     const body = (await response.json()) as { canvas_hash: string };
     const persistedBytes = await readFile(join(docsRoot, CANVAS_REL_PATH), "utf8");
     const persisted = JSON.parse(persistedBytes) as {
-      objects: Array<{ id: string; geometry: { x: number; y: number; width: number; height: number } }>;
+      objects: Array<{ id: string }>;
+      connections: unknown[];
     };
-    expect(persisted.objects.find((object) => object.id === "container-1")?.geometry).toEqual({
-      x: 80,
-      y: 96,
-      width: 160,
-      height: 112,
-    });
+    expect(persisted.objects.map((object) => object.id)).toEqual(["obj-1"]);
+    expect(persisted.connections).toEqual([]);
     expect(body.canvas_hash).toBe(createContentHash(persistedBytes));
   });
 
@@ -410,8 +405,8 @@ describe("POST /api/ops forwarded canvas actions", () => {
         ...ADD_OBJECT_OP,
         params: {
           ...ADD_OBJECT_OP.params,
-          type: "fitContainerToChildren",
-          containerId: "obj-1",
+          type: "removeObject",
+          objectId: "obj-1",
         },
       }],
     });

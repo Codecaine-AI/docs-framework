@@ -289,6 +289,35 @@ describe("createDocsRoutes (write contracts)", () => {
     expect(missingRes.status).toBe(404);
   });
 
+  test("annotations add accepts a text-range target and rejects a malformed one", async () => {
+    const addRes = await postJson("/api/annotations", {
+      path: "guide",
+      target: { kind: "text-range", blockId: "h1", start: 0, end: 5, quote: "Guide" },
+      body: "Reword this phrase",
+      intent: "agent-request",
+      author: "tester",
+    });
+    expect(addRes.status).toBe(201);
+    const added = (await addRes.json()) as { annotation: { target: { kind: string } } };
+    expect(added.annotation.target).toEqual({
+      kind: "text-range",
+      blockId: "h1",
+      start: 0,
+      end: 5,
+      quote: "Guide",
+    });
+
+    // end <= start fails the structural check up front.
+    const badRes = await postJson("/api/annotations", {
+      path: "guide",
+      target: { kind: "text-range", blockId: "h1", start: 5, end: 5, quote: "x" },
+      body: "Bad range",
+      intent: "agent-request",
+      author: "tester",
+    });
+    expect(badRes.status).toBe(400);
+  });
+
   test("undo replays the inverse once and fails loudly on double-use", async () => {
     const opsRes = await postJson("/api/ops", {
       path: "guide",
@@ -475,10 +504,11 @@ describe("GET /api/blocks (edit-surface discovery)", () => {
     "process-outline",
   ] as const;
   const ACTION_KEYS = [
-    "canvas.addAnnotation",
     "canvas.addConnection",
     "canvas.addObject",
-    "canvas.fitContainerToChildren",
+    "canvas.removeConnection",
+    "canvas.removeObject",
+    "canvas.updateConnection",
     "canvas.updateObject",
     "code.removeAnnotation",
     "code.setAnnotation",

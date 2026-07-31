@@ -6,32 +6,19 @@
  * An annotation surface over a doc's `annotations.json` (annotations are
  * workflow state and live ONLY in the bundle's annotations.json, never
  * inside doc.json/.canvas.json). An annotation marks a spot in the doc and
- * requests a change; agents process them. Supports two target kinds,
- * matching `AnnotationTarget` in `docs-model/annotations-schema.ts`:
- *  - `block`: a doc block, selected by clicking through DocBlockRenderer's
- *    block wrappers (each block renders with `data-block-id`).
- *  - `canvas-object`: an object/connection/region on an embedded canvas,
- *    selected via the canvas viewer's object-click surface.
+ * requests a change; agents process them.
  *
- * This component is intentionally decoupled from the exact backend HTTP
- * contract — callers supply `annotations` + async
- * `onAddAnnotation`/`onResolveAnnotation` callbacks, so the host
- * (DocsActionPane) owns the fetch/mutation wiring and can adapt to whatever
- * the annotations routes end up shaped like without Plannotator itself
- * changing.
- *
- * Dangling targets (block deleted, canvas object removed) never crash —
- * `detectDanglingTargets` is used to compute a per-annotation "target
- * removed" flag, and such annotations render a clearly-marked inert state
- * instead of throwing or silently disappearing.
+ * The panel UI/state lives in `@codecaine-ai/annotations/react`
+ * (`AnnotationPanel`); this module is the docs-shaped compat wrapper. It
+ * keeps the historical public surface (`PlannotatorProps`,
+ * `PlannotatorSelection`) and supplies the docs-specific pieces: the
+ * `targetKey`/`targetLabel` grouping functions (whose exact strings are a
+ * DOM/test contract via `data-plannotator-target` and visible labels) and
+ * the dangling-target detection over the doc + canvas index.
  */
 
-import { useMemo, useState } from "react";
-import { AlertTriangleIcon, CheckIcon, MessageSquarePlusIcon, SparklesIcon } from "lucide-react";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
-import { cn } from "../ui/cn";
+import { useMemo, type ReactNode } from "react";
+import { AnnotationPanel } from "@codecaine-ai/annotations/react";
 import type { DocDocument } from "@codecaine-ai/docs-model/doc-schema";
 import {
   detectDanglingTargets,
@@ -49,6 +36,15 @@ export type PlannotatorSelection =
       objectId?: string;
       connectionId?: string;
       region?: { x: number; y: number; width: number; height: number };
+      label?: string;
+    }
+  | {
+      /** See docs-model's text-range target for the offset convention. */
+      kind: "text-range";
+      blockId: string;
+      start: number;
+      end: number;
+      quote: string;
       label?: string;
     };
 
@@ -97,15 +93,32 @@ export interface PlannotatorProps {
   ) => Promise<{ ok: true } | { ok: false; detail: string }>;
   isSubmitting?: boolean;
   className?: string;
+  /**
+   * Render the inline composer for the pending selection (AnnotationPanel
+   * passthrough). Hosts using the anchored composer popover pass false — the
+   * panel then renders the annotation list only.
+   */
+  showComposer?: boolean;
+  /** Empty-list content (AnnotationPanel passthrough). */
+  emptyState?: ReactNode;
 }
 
-const INTENT_OPTIONS: Array<{ value: AnnotationIntent; label: string; hint: string }> = [
-  { value: "note", label: "Note", hint: "Just a note — no action requested." },
-  { value: "agent-request", label: "Agent request", hint: "Ask an agent to act on this." },
-];
+/** Collapse whitespace + truncate — the text-range label's quote form. */
+function quoteLabelText(quote: string): string {
+  const normalized = quote.replace(/\s+/g, " ").trim();
+  return normalized.length > 40 ? `${normalized.slice(0, 39)}…` : normalized;
+}
 
+// NOTE: these strings are a compat contract (data-plannotator-target attrs and
+// visible labels) and intentionally differ from docsAnnotationSchema's adapter
+// key/label format — do not swap them for the schema's targetKey/targetLabel.
+// (text-range is new with the anchored-composer UX and matches the schema's
+// format — it has no divergent historical contract.)
 function targetKey(target: AnnotationTarget): string {
   if (target.kind === "block") return `block:${target.blockId}`;
+  if (target.kind === "text-range") {
+    return `text-range:${target.blockId}:${target.start}-${target.end}`;
+  }
   if (target.objectId) return `canvas-object:${target.canvasSrc}:obj:${target.objectId}`;
   if (target.connectionId) return `canvas-object:${target.canvasSrc}:conn:${target.connectionId}`;
   if (target.region) {
@@ -114,8 +127,26 @@ function targetKey(target: AnnotationTarget): string {
   return `canvas-object:${target.canvasSrc}`;
 }
 
+function targetLabel(target: AnnotationTarget): string {
+  if (target.kind === "block") return `Block ${target.blockId}`;
+  if (target.kind === "text-range") return `Text "${quoteLabelText(target.quote)}"`;
+  if (target.objectId) return `Canvas object ${target.objectId}`;
+  if (target.connectionId) return `Canvas connection ${target.connectionId}`;
+  if (target.region) return `Canvas region @ (${target.region.x}, ${target.region.y})`;
+  return `Canvas ${target.canvasSrc}`;
+}
+
 function selectionToTarget(selection: PlannotatorSelection): AnnotationTarget {
   if (selection.kind === "block") return { kind: "block", blockId: selection.blockId };
+  if (selection.kind === "text-range") {
+    return {
+      kind: "text-range",
+      blockId: selection.blockId,
+      start: selection.start,
+      end: selection.end,
+      quote: selection.quote,
+    };
+  }
   return {
     kind: "canvas-object",
     canvasSrc: selection.canvasSrc,
@@ -123,26 +154,6 @@ function selectionToTarget(selection: PlannotatorSelection): AnnotationTarget {
     connectionId: selection.connectionId,
     region: selection.region,
   };
-}
-
-function targetLabel(target: AnnotationTarget): string {
-  if (target.kind === "block") return `Block ${target.blockId}`;
-  if (target.objectId) return `Canvas object ${target.objectId}`;
-  if (target.connectionId) return `Canvas connection ${target.connectionId}`;
-  if (target.region) return `Canvas region @ (${target.region.x}, ${target.region.y})`;
-  return `Canvas ${target.canvasSrc}`;
-}
-
-/** Groups annotations by target so the marker list can show one entry with an open-count per target. */
-function groupByTarget(annotations: DocAnnotation[]): Map<string, DocAnnotation[]> {
-  const groups = new Map<string, DocAnnotation[]>();
-  for (const annotation of annotations) {
-    const key = targetKey(annotation.target);
-    const existing = groups.get(key);
-    if (existing) existing.push(annotation);
-    else groups.set(key, [annotation]);
-  }
-  return groups;
 }
 
 export default function Plannotator({
@@ -158,302 +169,40 @@ export default function Plannotator({
   onUndoPatch,
   isSubmitting,
   className,
+  showComposer,
+  emptyState,
 }: PlannotatorProps) {
-  const [body, setBody] = useState("");
-  const [intent, setIntent] = useState<AnnotationIntent>("note");
-  const [error, setError] = useState<string | null>(null);
-  const [runningAgentIds, setRunningAgentIds] = useState<Set<string>>(new Set());
-  const [undoingPatchIds, setUndoingPatchIds] = useState<Set<string>>(new Set());
-  const [undonePatchIds, setUndonePatchIds] = useState<Set<string>>(new Set());
-  const [agentErrors, setAgentErrors] = useState<Record<string, string>>({});
-
-  const danglingIds = useMemo(() => {
+  const danglingReasons = useMemo(() => {
     const dangling = detectDanglingTargets({ schemaVersion: 1, annotations }, document, canvases);
     return new Map(dangling.map((entry) => [entry.annotationId, entry.reason]));
   }, [annotations, document, canvases]);
 
-  const groups = useMemo(() => groupByTarget(annotations), [annotations]);
-
-  const submit = async () => {
-    if (!selection || !body.trim()) return;
-    setError(null);
-    try {
-      await onAddAnnotation({ target: selectionToTarget(selection), body: body.trim(), intent });
-      setBody("");
-      setIntent("note");
-      onClearSelection();
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Failed to add annotation.");
-    }
-  };
-
-  const runAgent = async (annotationId: string) => {
-    if (!onRunAgent) return;
-    setRunningAgentIds((prev) => new Set(prev).add(annotationId));
-    setAgentErrors((prev) => {
-      const next = { ...prev };
-      delete next[annotationId];
-      return next;
-    });
-    try {
-      const result = await onRunAgent(annotationId);
-      if (!result.ok) {
-        setAgentErrors((prev) => ({ ...prev, [annotationId]: result.detail }));
-      }
-    } catch (runError) {
-      setAgentErrors((prev) => ({
-        ...prev,
-        [annotationId]: runError instanceof Error ? runError.message : "Failed to run agent.",
-      }));
-    } finally {
-      setRunningAgentIds((prev) => {
-        const next = new Set(prev);
-        next.delete(annotationId);
-        return next;
-      });
-    }
-  };
-
-  const undoPatch = async (annotationId: string, patchId: string, changedIds?: string[]) => {
-    if (!onUndoPatch) return;
-    setUndoingPatchIds((prev) => new Set(prev).add(annotationId));
-    setAgentErrors((prev) => {
-      const next = { ...prev };
-      delete next[annotationId];
-      return next;
-    });
-    try {
-      const result = await onUndoPatch(patchId, changedIds);
-      if (result.ok) {
-        setUndonePatchIds((prev) => new Set(prev).add(annotationId));
-      } else {
-        setAgentErrors((prev) => ({ ...prev, [annotationId]: result.detail }));
-      }
-    } catch (undoError) {
-      setAgentErrors((prev) => ({
-        ...prev,
-        [annotationId]: undoError instanceof Error ? undoError.message : "Failed to undo patch.",
-      }));
-    } finally {
-      setUndoingPatchIds((prev) => {
-        const next = new Set(prev);
-        next.delete(annotationId);
-        return next;
-      });
-    }
-  };
+  const panelSelection = useMemo(
+    () => (selection ? { target: selectionToTarget(selection), label: selection.label } : null),
+    [selection],
+  );
 
   return (
-    <div className={cn("flex flex-col gap-4", className)} data-plannotator="root">
-      {selection && (
-        <div
-          className="flex flex-col gap-2 rounded-md border bg-popover p-3 shadow-sm"
-          data-plannotator="composer"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-medium text-muted-foreground">
-              Annotating: {selection.label ?? targetLabel(selectionToTarget(selection))}
-            </span>
-            <Button type="button" variant="ghost" size="xs" onClick={onClearSelection}>
-              Cancel
-            </Button>
-          </div>
-
-          <div className="flex gap-1">
-            {INTENT_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                data-plannotator-intent={option.value}
-                aria-pressed={intent === option.value}
-                title={option.hint}
-                onClick={() => setIntent(option.value)}
-                className={cn(
-                  "flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors",
-                  intent === option.value
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:bg-muted/50",
-                )}
-              >
-                {option.value === "agent-request" && <SparklesIcon className="h-3 w-3" />}
-                {option.label}
-              </button>
-            ))}
-          </div>
-
-          <Textarea
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            onKeyDown={(event) => {
-              if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-                event.preventDefault();
-                void submit();
-              }
-            }}
-            rows={3}
-            placeholder={
-              intent === "agent-request"
-                ? "Describe what you want an agent to do..."
-                : "Add an annotation..."
-            }
-            className="min-h-20 resize-none text-sm"
-          />
-
-          {error && <div className="text-xs text-destructive">{error}</div>}
-
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              size="sm"
-              disabled={!body.trim() || isSubmitting}
-              onClick={() => void submit()}
-            >
-              <MessageSquarePlusIcon className="h-3.5 w-3.5" />
-              {isSubmitting ? "Posting..." : "Post annotation"}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-3" data-plannotator="list">
-        {groups.size === 0 && (
-          <div className="text-sm text-muted-foreground">
-            No annotations yet. Select a block or canvas object to start one.
-          </div>
-        )}
-
-        {Array.from(groups.entries()).map(([key, group]) => {
-          const openCount = group.filter((a) => a.status === "open").length;
-          const target = group[0].target;
-          const dangling = group.find((a) => danglingIds.has(a.id));
-
-          return (
-            <div
-              key={key}
-              className="flex flex-col gap-2 rounded-md border p-3"
-              data-plannotator-target={key}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  className="text-left text-xs font-medium text-muted-foreground hover:text-foreground"
-                  onClick={() => onFocusTarget?.(target)}
-                  disabled={!onFocusTarget || Boolean(dangling)}
-                >
-                  {targetLabel(target)}
-                </button>
-                <div className="flex items-center gap-1">
-                  {dangling && (
-                    <Badge variant="destructive" className="gap-1">
-                      <AlertTriangleIcon className="h-3 w-3" />
-                      Target removed
-                    </Badge>
-                  )}
-                  {openCount > 0 && <Badge variant="secondary">{openCount} open</Badge>}
-                </div>
-              </div>
-
-              {dangling && (
-                <div className="text-xs text-muted-foreground" data-plannotator-dangling-reason="">
-                  {danglingIds.get(dangling.id)}
-                </div>
-              )}
-
-              <div className="flex flex-col gap-2">
-                {group.map((annotation) => (
-                  <div
-                    key={annotation.id}
-                    className="flex flex-col gap-1 rounded-sm border bg-muted/20 p-2"
-                    data-plannotator-annotation-id={annotation.id}
-                    data-plannotator-annotation-status={annotation.status}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground">{annotation.author}</span>
-                        {annotation.intent === "agent-request" && (
-                          <Badge variant="outline" className="gap-1">
-                            <SparklesIcon className="h-3 w-3" />
-                            Agent request
-                          </Badge>
-                        )}
-                        <span>{new Date(annotation.createdAt).toLocaleString()}</span>
-                      </div>
-                      {annotation.status === "open" && (
-                        <Button
-                          type="button"
-                          size="xs"
-                          variant="ghost"
-                          onClick={() => void onResolveAnnotation(annotation.id)}
-                        >
-                          <CheckIcon className="h-3.5 w-3.5" />
-                          Resolve
-                        </Button>
-                      )}
-                      {annotation.status === "resolved" && (
-                        <Badge variant="secondary" className="gap-1">
-                          <CheckIcon className="h-3 w-3" />
-                          Resolved
-                        </Badge>
-                      )}
-                      {annotation.intent === "agent-request" &&
-                        annotation.status === "open" &&
-                        !annotation.agentRun &&
-                        onRunAgent && (
-                          <Button
-                            type="button"
-                            size="xs"
-                            variant="ghost"
-                            disabled={runningAgentIds.has(annotation.id)}
-                            onClick={() => void runAgent(annotation.id)}
-                          >
-                            <SparklesIcon className="h-3.5 w-3.5" />
-                            {runningAgentIds.has(annotation.id) ? "Running..." : "Run agent"}
-                          </Button>
-                        )}
-                    </div>
-                    <p className="whitespace-pre-wrap text-sm">{annotation.body}</p>
-                    {annotation.agentRun && (
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Agent run: {annotation.agentRun.summary}
-                        </div>
-                        {onUndoPatch && (
-                          <Button
-                            type="button"
-                            size="xs"
-                            variant="ghost"
-                            disabled={
-                              undoingPatchIds.has(annotation.id) || undonePatchIds.has(annotation.id)
-                            }
-                            onClick={() =>
-                              void undoPatch(
-                                annotation.id,
-                                annotation.agentRun!.patchId,
-                                annotation.agentRun!.changedIds,
-                              )
-                            }
-                          >
-                            {undonePatchIds.has(annotation.id)
-                              ? "Undone"
-                              : undoingPatchIds.has(annotation.id)
-                                ? "Undoing..."
-                                : "Undo"}
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                    {agentErrors[annotation.id] && (
-                      <div className="text-xs text-destructive" data-plannotator-agent-error="">
-                        {agentErrors[annotation.id]}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <AnnotationPanel<AnnotationTarget>
+      annotations={annotations}
+      selection={panelSelection}
+      targetKey={targetKey}
+      targetLabel={targetLabel}
+      danglingReasons={danglingReasons}
+      onClearSelection={onClearSelection}
+      onAddAnnotation={({ target, body, intent }) =>
+        // The panel's intents come from its default note/agent-request
+        // options, so the wide engine string is the narrow docs union.
+        onAddAnnotation({ target, body, intent: intent as AnnotationIntent })
+      }
+      onResolveAnnotation={onResolveAnnotation}
+      onFocusTarget={onFocusTarget}
+      onRunAgent={onRunAgent}
+      onUndoPatch={onUndoPatch}
+      isSubmitting={isSubmitting}
+      className={className}
+      showComposer={showComposer}
+      emptyState={emptyState}
+    />
   );
 }

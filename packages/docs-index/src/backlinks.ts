@@ -2,7 +2,7 @@ import { Database } from "bun:sqlite";
 import { mkdir, readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { DeltaSpan, DocDocument } from "@codecaine-ai/docs-model/doc-schema";
-import type { InteractiveCanvasDocument } from "@codecaine-ai/canvas/schema";
+import type { CanvasDocumentWithLinks } from "./canvas-links";
 import { candidateStoredForms, normalizeDocRefPath } from "./ref-match";
 
 /**
@@ -214,7 +214,7 @@ export function extractDocRefs(document: DocDocument): BacklinkRef[] {
  * `InteractiveCanvasLink` in interactive-canvas/schema.ts) and emits one ref
  * per link, keyed by that owning object's id.
  */
-export function extractCanvasRefs(canvas: InteractiveCanvasDocument): BacklinkRef[] {
+export function extractCanvasRefs(canvas: CanvasDocumentWithLinks): BacklinkRef[] {
   const refs: BacklinkRef[] = [];
   for (const link of canvas.links ?? []) {
     const target = link.target;
@@ -302,7 +302,7 @@ export async function rescanAll(
 
     let refs: BacklinkRef[];
     if (file.absPath.endsWith(".canvas.json")) {
-      refs = extractCanvasRefs(parsed as InteractiveCanvasDocument);
+      refs = extractCanvasRefs(parsed as CanvasDocumentWithLinks);
     } else {
       refs = extractDocRefs(parsed as DocDocument);
     }

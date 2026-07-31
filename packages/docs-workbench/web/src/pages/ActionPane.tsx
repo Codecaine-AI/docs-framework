@@ -9,8 +9,10 @@ import type {
 /**
  * Annotate-mode side pane (the standalone counterpart of Spectre's
  * DocsActionPane annotations tab): a header with the open-annotation count,
- * a selection hint, and Plannotator (composer + grouped annotation list with
- * resolve + dangling-target handling). All mutation wiring lives in DocPage.
+ * a how-to hint, and Plannotator as a LIST-ONLY thread view (grouped
+ * annotations with resolve + dangling-target handling). The composer is the
+ * anchored popover on the document surface — `showComposer={false}` here.
+ * All mutation wiring lives in DocPage.
  */
 export function ActionPane({
   annotations,
@@ -62,7 +64,8 @@ export function ActionPane({
 
       {!selection && (
         <p className="text-xs text-muted-foreground">
-          Click a block in the document (or an object on an embedded canvas) to annotate it.
+          Click a block — or hold Cmd/Ctrl and drag across text — to open the composer next
+          to it. Canvas objects are clickable too.
         </p>
       )}
 
@@ -82,6 +85,8 @@ export function ActionPane({
         onResolveAnnotation={onResolveAnnotation}
         onFocusTarget={onFocusTarget}
         isSubmitting={isSubmitting}
+        showComposer={false}
+        emptyState="No annotations yet. Click a block, Cmd/Ctrl+drag across text, or click a canvas object to start one."
       />
     </div>
   );

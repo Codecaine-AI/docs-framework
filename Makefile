@@ -7,7 +7,7 @@ help: ## List available commands
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
 install: ## Install workspace dependencies
-	bun install
+	cd .. && bun install
 
 test: ## Run the full test suite (scoped to packages/ — never bare `bun test`)
 	bun run test

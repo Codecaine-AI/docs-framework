@@ -4,10 +4,11 @@ import { ExternalLinkIcon, Maximize2Icon, PencilIcon, XIcon } from "lucide-react
 import type { CanvasEmbedProps } from "@codecaine-ai/docs-viewer/client";
 import {
   InteractiveCanvasViewer,
-  syntheticInteractiveCanvas,
   validateInteractiveCanvasDocument,
   type InteractiveCanvasDocument,
 } from "@codecaine-ai/canvas";
+
+import { syntheticInteractiveCanvas } from "../synthetic-canvas";
 
 import { getCanvasBySrc } from "../data/api";
 
@@ -166,6 +167,7 @@ export function StandaloneCanvasEmbed({
       <InteractiveCanvasViewer
         document={viewerDocument}
         view={view}
+        bare
         onObjectSelect={onObjectSelect}
       />
     </div>
@@ -216,6 +218,7 @@ export function StandaloneCanvasEmbed({
                 document={viewerDocument}
                 view={view}
                 interactive
+                bare
                 onObjectSelect={onObjectSelect}
               />
             </div>

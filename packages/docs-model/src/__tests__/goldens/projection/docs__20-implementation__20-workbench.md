@@ -44,7 +44,7 @@ Two server outcomes pause autosave without discarding the editor draft.
 
 Annotate mode composes viewer targeting with a workbench-owned annotations sidecar.
 
-- docs-viewer emits stable block targets; the injected canvas embed emits canvas-object targets.
+- docs-viewer emits stable block targets, Cmd/Ctrl+drag over a block's text emits text-range targets, and the injected canvas embed emits canvas-object targets.
 
 - The workbench stores target, intent, body, and resolution state in `annotations.json` beside the bundle.
 

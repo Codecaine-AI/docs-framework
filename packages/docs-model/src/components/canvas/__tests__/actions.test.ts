@@ -9,12 +9,20 @@ import { liftCanvasOperations } from "../actions/lift";
 const ACTION_KEYS = [
   "canvas.addObject",
   "canvas.updateObject",
+  "canvas.removeObject",
   "canvas.addConnection",
-  "canvas.addAnnotation",
-  "canvas.fitContainerToChildren",
+  "canvas.updateConnection",
+  "canvas.removeConnection",
 ] as const;
 
-const PAYLOAD_PROPERTIES = ["object", "objectId", "connection", "annotation", "containerId"];
+const PAYLOAD_PROPERTIES = [
+  "object",
+  "objectId",
+  "objectId",
+  "connection",
+  "connectionId",
+  "connectionId",
+];
 
 const VALID_ADD_OBJECT = {
   object: {
@@ -29,7 +37,7 @@ describe("canvas actions", () => {
   it("lifts all operations in descriptor order as canvas forwards", () => {
     const actions = liftCanvasOperations();
 
-    expect(actions).toHaveLength(5);
+    expect(actions).toHaveLength(6);
     expect(actions.map((action) => action.action)).toEqual([...ACTION_KEYS]);
     actions.forEach((action, index) => {
       expect(TypeGuard.IsObject(action.params)).toBe(true);
@@ -44,9 +52,8 @@ describe("canvas actions", () => {
     const addObject = liftCanvasOperations()[0];
 
     expect(checkParams(addObject, VALID_ADD_OBJECT)).toEqual([]);
-    const issues = checkParams(addObject, {
-      object: { ...VALID_ADD_OBJECT.object, geometry: { x: 0, y: 0, width: 0, height: 88 } },
-    });
-    expect(issues.some((issue) => issue.path === "$.params.object.geometry.width")).toBe(true);
+    const { geometry: _omitted, ...objectWithoutGeometry } = VALID_ADD_OBJECT.object;
+    const issues = checkParams(addObject, { object: objectWithoutGeometry });
+    expect(issues.some((issue) => issue.path === "$.params.object.geometry")).toBe(true);
   });
 });

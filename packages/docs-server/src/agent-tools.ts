@@ -20,7 +20,7 @@ import type { DocDocument } from "@codecaine-ai/docs-model/doc-schema";
 import type { DocOp } from "@codecaine-ai/docs-model/doc-ops";
 import { projectToMarkdown } from "@codecaine-ai/docs-model/project-markdown";
 import type { AnnotationsDocument, DocAnnotation } from "@codecaine-ai/docs-model/annotations-schema";
-import { fitContainerToChildren } from "@codecaine-ai/canvas/geometry";
+import { sectionDescendantIds } from "@codecaine-ai/canvas/geometry";
 import {
   validateInteractiveCanvasDocument,
   type InteractiveCanvasDocument,
@@ -242,11 +242,95 @@ function applyCanvasPatchOperation(
       });
       return { document: { ...document, objects }, changedIds: changed ? [operation.objectId] : [] };
     }
+    case "removeObject": {
+      const existing = document.objects.find((object) => object.id === operation.objectId);
+      if (!existing) return { document, changedIds: [] };
+      // Mirror the canvas package's agent-patch semantics: removing a section
+      // removes its recorded descendants, connections touching any removed
+      // object cascade away, and annotations pointing at removed objects or
+      // cascaded connections are dropped.
+      const idSet = new Set([operation.objectId]);
+      if (existing.type === "section") {
+        for (const descendantId of sectionDescendantIds(document, operation.objectId)) {
+          idSet.add(descendantId);
+        }
+      }
+      const removedConnectionIds = new Set(
+        document.connections
+          .filter(
+            (connection) =>
+              idSet.has(connection.from.objectId) || idSet.has(connection.to.objectId),
+          )
+          .map((connection) => connection.id),
+      );
+      return {
+        document: {
+          ...document,
+          objects: document.objects.filter((object) => !idSet.has(object.id)),
+          connections: document.connections.filter(
+            (connection) => !removedConnectionIds.has(connection.id),
+          ),
+          annotations: document.annotations?.filter((annotation) => {
+            if (annotation.target.kind === "object") return !idSet.has(annotation.target.objectId);
+            if (annotation.target.kind === "connection") {
+              return !removedConnectionIds.has(annotation.target.connectionId);
+            }
+            return true;
+          }),
+        },
+        changedIds: [...idSet, ...removedConnectionIds],
+      };
+    }
     case "addConnection":
       return {
         document: { ...document, connections: [...document.connections, operation.connection] },
         changedIds: [operation.connection.id],
       };
+    case "updateConnection": {
+      let changed = false;
+      const connections = document.connections.map((connection) => {
+        if (connection.id !== operation.connectionId) return connection;
+        changed = true;
+        return { ...connection, ...operation.patch, id: connection.id };
+      });
+      return {
+        document: { ...document, connections },
+        changedIds: changed ? [operation.connectionId] : [],
+      };
+    }
+    case "removeConnection": {
+      if (!document.connections.some((connection) => connection.id === operation.connectionId)) {
+        return { document, changedIds: [] };
+      }
+      return {
+        document: {
+          ...document,
+          connections: document.connections.filter(
+            (connection) => connection.id !== operation.connectionId,
+          ),
+          annotations: document.annotations?.filter(
+            (annotation) =>
+              !(
+                annotation.target.kind === "connection" &&
+                annotation.target.connectionId === operation.connectionId
+              ),
+          ),
+        },
+        changedIds: [operation.connectionId],
+      };
+    }
+    case "updateTitle": {
+      // Same rule as the canvas package's agent path: trim, and treat an
+      // empty or unchanged title as nothing to do.
+      const title = operation.title.trim();
+      if (!title || document.title === title) return { document, changedIds: [] };
+      return { document: { ...document, title }, changedIds: [] };
+    }
+    case "updateDescription": {
+      const description = operation.description.trim() ? operation.description : undefined;
+      if (document.description === description) return { document, changedIds: [] };
+      return { document: { ...document, description }, changedIds: [] };
+    }
     case "addAnnotation":
       return {
         document: {
@@ -255,11 +339,40 @@ function applyCanvasPatchOperation(
         },
         changedIds: [operation.annotation.id],
       };
-    case "fitContainerToChildren":
+    case "appendAnnotationReply": {
+      const annotations = document.annotations ?? [];
+      const existing = annotations.find((annotation) => annotation.id === operation.annotationId);
+      if (!existing || existing.replies.some((reply) => reply.id === operation.reply.id)) {
+        return { document, changedIds: [] };
+      }
       return {
-        document: fitContainerToChildren(document, operation.containerId, operation.padding),
-        changedIds: [operation.containerId],
+        document: {
+          ...document,
+          annotations: annotations.map((annotation) =>
+            annotation.id === operation.annotationId
+              ? { ...annotation, replies: [...annotation.replies, operation.reply] }
+              : annotation,
+          ),
+        },
+        changedIds: [operation.annotationId],
       };
+    }
+    case "setAnnotationStatus": {
+      const annotations = document.annotations ?? [];
+      const existing = annotations.find((annotation) => annotation.id === operation.annotationId);
+      if (!existing || existing.status === operation.status) return { document, changedIds: [] };
+      return {
+        document: {
+          ...document,
+          annotations: annotations.map((annotation) =>
+            annotation.id === operation.annotationId
+              ? { ...annotation, status: operation.status }
+              : annotation,
+          ),
+        },
+        changedIds: [operation.annotationId],
+      };
+    }
     default: {
       const _exhaustive: never = operation;
       return { document, changedIds: [] };

@@ -9,7 +9,7 @@ import { applyOps } from "@codecaine-ai/docs-model/doc-ops";
 import { openBacklinksDb, rescanAll, queryInbound } from "../backlinks";
 import { moveDocBundle, type ApplyDocOpsFn, type LoadCanvasFn, type SaveCanvasFn } from "../move-doc";
 import { resolveDocBundleJsonPath } from "../paths";
-import type { InteractiveCanvasDocument } from "@codecaine-ai/canvas/schema";
+import type { CanvasDocumentWithLinks } from "../canvas-links";
 
 let docsRoot: string;
 let db: Database;
@@ -85,7 +85,7 @@ async function writeBundle(bundlePath: string, doc: unknown): Promise<void> {
   await writeFile(abs, `${JSON.stringify(doc, null, 2)}\n`, "utf8");
 }
 
-async function writeCanvas(relPath: string, canvas: InteractiveCanvasDocument): Promise<void> {
+async function writeCanvas(relPath: string, canvas: CanvasDocumentWithLinks): Promise<void> {
   const abs = join(docsRoot, relPath);
   await mkdir(join(docsRoot, relPath, ".."), { recursive: true });
   await writeFile(abs, `${JSON.stringify(canvas, null, 2)}\n`, "utf8");
@@ -94,7 +94,7 @@ async function writeCanvas(relPath: string, canvas: InteractiveCanvasDocument): 
 const loadCanvas: LoadCanvasFn = async (root, relPath) => {
   try {
     const raw = await readFile(join(root, relPath), "utf8");
-    return { ok: true, canvas: JSON.parse(raw) as InteractiveCanvasDocument };
+    return { ok: true, canvas: JSON.parse(raw) as CanvasDocumentWithLinks };
   } catch (error) {
     return { ok: false, reason: error instanceof Error ? error.message : String(error) };
   }
@@ -146,7 +146,7 @@ function sourceDocWithRef(bundleId: string, refPath: string): unknown {
   };
 }
 
-function canvasWithLink(canvasId: string, refPath: string): InteractiveCanvasDocument {
+function canvasWithLink(canvasId: string, refPath: string): CanvasDocumentWithLinks {
   return {
     schemaVersion: 1,
     id: canvasId,
@@ -155,7 +155,7 @@ function canvasWithLink(canvasId: string, refPath: string): InteractiveCanvasDoc
       {
         id: "obj-1",
         type: "process",
-        label: "Box",
+        text: "Box",
         geometry: { x: 0, y: 0, width: 10, height: 10 },
       },
     ],
@@ -238,7 +238,7 @@ describe("moveDocBundle", () => {
       join(docsRoot, "10-system-design/assets/canvases/arch.canvas.json"),
       "utf8",
     );
-    const canvas = JSON.parse(canvasRaw) as InteractiveCanvasDocument;
+    const canvas = JSON.parse(canvasRaw) as CanvasDocumentWithLinks;
     expect(canvas.links?.[0]?.target.path).toBe("00-foundation/15-purpose-renamed");
 
     // Re-indexed: querying the OLD path returns nothing, the NEW path returns
@@ -371,7 +371,7 @@ describe("moveDocBundle", () => {
       join(docsRoot, "00-foundation/15-purpose-renamed/assets/canvases/self.canvas.json"),
       "utf8",
     );
-    const canvas = JSON.parse(canvasRaw) as InteractiveCanvasDocument;
+    const canvas = JSON.parse(canvasRaw) as CanvasDocumentWithLinks;
     expect(canvas.links?.[0]?.target.path).toBe("00-foundation/15-purpose-renamed");
   });
 

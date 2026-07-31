@@ -231,7 +231,7 @@ export async function writeAnnotationsSidecar(
   return { content, hash: createContentHash(content) };
 }
 
-/** Structural check for an annotation target (block or canvas-object). */
+/** Structural check for an annotation target (block, canvas-object, or text-range). */
 export function isValidAnnotationTarget(value: unknown): value is AnnotationTarget {
   if (!value || typeof value !== "object") return false;
   const record = value as Record<string, unknown>;
@@ -246,6 +246,20 @@ export function isValidAnnotationTarget(value: unknown): value is AnnotationTarg
       record.region !== undefined,
     ].filter(Boolean).length;
     return hasCanvasSrc && selectorCount === 1;
+  }
+  if (record.kind === "text-range") {
+    return (
+      typeof record.blockId === "string" &&
+      record.blockId.length > 0 &&
+      typeof record.start === "number" &&
+      Number.isInteger(record.start) &&
+      record.start >= 0 &&
+      typeof record.end === "number" &&
+      Number.isInteger(record.end) &&
+      record.end > record.start &&
+      typeof record.quote === "string" &&
+      record.quote.length > 0
+    );
   }
   return false;
 }

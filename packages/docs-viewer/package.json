@@ -22,6 +22,7 @@
     "react-dom": "^19"
   },
   "dependencies": {
+    "@codecaine-ai/annotations": "workspace:*",
     "@codecaine-ai/docs-model": "workspace:*",
     "@floating-ui/react": "^0.27.19",
     "@tiptap/core": "^3.27.1",

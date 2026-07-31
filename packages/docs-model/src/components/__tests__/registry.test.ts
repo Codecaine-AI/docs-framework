@@ -13,10 +13,11 @@ import {
 import type { ComponentAction, ComponentBundle } from "../types";
 
 const ACTION_KEYS = [
-  "canvas.addAnnotation",
   "canvas.addConnection",
   "canvas.addObject",
-  "canvas.fitContainerToChildren",
+  "canvas.removeConnection",
+  "canvas.removeObject",
+  "canvas.updateConnection",
   "canvas.updateObject",
   "code.removeAnnotation",
   "code.setAnnotation",

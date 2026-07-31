@@ -40,7 +40,7 @@ const SAMPLE_CANVAS = {
     {
       id: "obj-1",
       type: "process",
-      label: "Step one",
+      text: "Step one",
       geometry: { x: 0, y: 0, width: 100, height: 60 },
     },
   ],
@@ -277,7 +277,7 @@ describe("agent-tools: canvas_get / canvas_apply_patch (TG9.1)", () => {
           object: {
             id: "obj-2",
             type: "process",
-            label: "Step two",
+            text: "Step two",
             geometry: { x: 200, y: 0, width: 100, height: 60 },
           },
         },
@@ -306,7 +306,7 @@ describe("agent-tools: canvas_get / canvas_apply_patch (TG9.1)", () => {
     const result = await canvas_apply_patch(
       docsRoot,
       canvasRelPath,
-      [{ type: "updateObject", objectId: "obj-1", patch: { label: "Renamed" } }],
+      [{ type: "updateObject", objectId: "obj-1", patch: { text: "Renamed" } }],
       "stale-hash",
       "agent-session",
     );
@@ -314,7 +314,7 @@ describe("agent-tools: canvas_get / canvas_apply_patch (TG9.1)", () => {
     if (!result.ok) expect(result.status).toBe(409);
 
     const onDisk = JSON.parse(await Bun.file(join(docsRoot, canvasRelPath)).text());
-    expect(onDisk.objects[0].label).toBe("Step one");
+    expect(onDisk.objects[0].text).toBe("Step one");
   });
 
   test("canvas_apply_patch is blocked (423) by a foreign live draft lock (D22)", async () => {
@@ -323,7 +323,7 @@ describe("agent-tools: canvas_get / canvas_apply_patch (TG9.1)", () => {
       const result = await canvas_apply_patch(
         docsRoot,
         canvasRelPath,
-        [{ type: "updateObject", objectId: "obj-1", patch: { label: "Renamed" } }],
+        [{ type: "updateObject", objectId: "obj-1", patch: { text: "Renamed" } }],
         undefined,
         "agent-session",
       );
@@ -341,9 +341,9 @@ describe("agent-tools: canvas_get / canvas_apply_patch (TG9.1)", () => {
         {
           id: "obj-1",
           type: "process",
-          label: "Step one",
+          text: "Step one",
           geometry: { x: 0, y: 0, width: 100, height: 60 },
-          style: { fill: "#ffffff", stroke: "#123456", shape: "rounded-rect" },
+          style: { shape: "rounded-rect", strokeWidth: 2 },
         },
       ],
     };
@@ -352,50 +352,47 @@ describe("agent-tools: canvas_get / canvas_apply_patch (TG9.1)", () => {
     const result = await canvas_apply_patch(
       docsRoot,
       canvasRelPath,
-      [{ type: "updateObject", objectId: "obj-1", patch: { style: { fill: "#ff0000" } } }],
+      [{ type: "updateObject", objectId: "obj-1", patch: { style: { strokeStyle: "dashed" } } }],
       undefined,
       "agent-session",
     );
     expect(result.ok).toBe(true);
     if (result.ok) {
       const object = result.canvas.objects.find((o) => o.id === "obj-1");
-      expect(object?.style?.fill).toBe("#ff0000");
+      expect(object?.style?.strokeStyle).toBe("dashed");
       // Pre-fix these were silently dropped by the shallow `...patch` spread.
-      expect(object?.style?.stroke).toBe("#123456");
       expect(object?.style?.shape).toBe("rounded-rect");
+      expect(object?.style?.strokeWidth).toBe(2);
 
       const onDisk = JSON.parse(await Bun.file(join(docsRoot, canvasRelPath)).text());
-      expect(onDisk.objects[0].style).toEqual({ fill: "#ff0000", stroke: "#123456", shape: "rounded-rect" });
+      expect(onDisk.objects[0].style).toEqual({ shape: "rounded-rect", strokeWidth: 2, strokeStyle: "dashed" });
     }
   });
 
-  test("canvas_apply_patch supports fitContainerToChildren", async () => {
-    const withContainer = {
+  test("canvas_apply_patch supports removeObject with connection cascade", async () => {
+    const withConnection = {
       ...SAMPLE_CANVAS,
       objects: [
-        { id: "container-1", type: "container", label: "Group", geometry: { x: 0, y: 0, width: 10, height: 10 } },
-        {
-          id: "child-1",
-          type: "process",
-          label: "Child",
-          parentId: "container-1",
-          geometry: { x: 20, y: 20, width: 50, height: 40 },
-        },
+        { id: "obj-1", type: "process", text: "Step one", geometry: { x: 0, y: 0, width: 100, height: 60 } },
+        { id: "obj-2", type: "process", text: "Step two", geometry: { x: 200, y: 0, width: 100, height: 60 } },
       ],
+      connections: [{ id: "conn-1", from: { objectId: "obj-1" }, to: { objectId: "obj-2" } }],
     };
-    await writeFile(join(docsRoot, canvasRelPath), `${JSON.stringify(withContainer, null, 2)}\n`, "utf8");
+    await writeFile(join(docsRoot, canvasRelPath), `${JSON.stringify(withConnection, null, 2)}\n`, "utf8");
 
     const result = await canvas_apply_patch(
       docsRoot,
       canvasRelPath,
-      [{ type: "fitContainerToChildren", containerId: "container-1", padding: 10 }],
+      [{ type: "removeObject", objectId: "obj-2" }],
       undefined,
       "agent-session",
     );
     expect(result.ok).toBe(true);
     if (result.ok) {
-      const container = result.canvas.objects.find((o) => o.id === "container-1");
-      expect(container?.geometry.width).toBeGreaterThan(10);
+      expect(result.canvas.objects.map((o) => o.id)).toEqual(["obj-1"]);
+      // Connections touching the removed object cascade away with it.
+      expect(result.canvas.connections).toHaveLength(0);
+      expect([...result.changedIds].sort()).toEqual(["conn-1", "obj-2"]);
     }
   });
 
@@ -409,7 +406,7 @@ describe("agent-tools: canvas_get / canvas_apply_patch (TG9.1)", () => {
           object: {
             id: "obj-2",
             type: "process",
-            label: "Step two",
+            text: "Step two",
             geometry: { x: 200, y: 0, width: 100, height: 60 },
           },
         },
@@ -434,7 +431,7 @@ describe("agent-tools: canvas_get / canvas_apply_patch (TG9.1)", () => {
     const applied = await canvas_apply_patch(
       docsRoot,
       canvasRelPath,
-      [{ type: "updateObject", objectId: "obj-1", patch: { label: "Renamed once" } }],
+      [{ type: "updateObject", objectId: "obj-1", patch: { text: "Renamed once" } }],
       undefined,
       "agent-session",
     );
@@ -444,7 +441,7 @@ describe("agent-tools: canvas_get / canvas_apply_patch (TG9.1)", () => {
     await canvas_apply_patch(
       docsRoot,
       canvasRelPath,
-      [{ type: "updateObject", objectId: "obj-1", patch: { label: "Renamed twice" } }],
+      [{ type: "updateObject", objectId: "obj-1", patch: { text: "Renamed twice" } }],
       undefined,
       "other-session",
     );
@@ -454,7 +451,7 @@ describe("agent-tools: canvas_get / canvas_apply_patch (TG9.1)", () => {
     if (!undone.ok) expect(undone.status).toBe(409);
 
     const onDisk = JSON.parse(await Bun.file(join(docsRoot, canvasRelPath)).text());
-    expect(onDisk.objects[0].label).toBe("Renamed twice");
+    expect(onDisk.objects[0].text).toBe("Renamed twice");
   });
 });
 

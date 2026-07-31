@@ -257,25 +257,28 @@ describe("live smoke (real server, real docs copy)", () => {
       const block = document.querySelector(`[data-block-id="${firstBlockId}"]`);
       expect(!!block).toBe(true);
 
-      // Framework targeting layer: hovering the real block outlines it and
-      // shows the floating chip labelled from the block registry.
+      // Shared targeting layer: hovering the real block draws the dotted
+      // glide ring and the floating chip labelled from the block registry.
       fireEvent.mouseMove(block!);
-      expect(block!.classList.contains("docs-target-hovered")).toBe(true);
-      const chip = document.querySelector('[data-docs-target-overlay-label="hover"]');
+      expect(!!document.querySelector('[data-annotation-ui="hover-ring"]')).toBe(true);
+      const chip = document.querySelector('[data-annotation-ui="hover-chip"]');
       expect(!!chip).toBe(true);
       expect((chip?.textContent ?? "").length).toBeGreaterThan(0);
 
+      // Clicking pins the block and opens the anchored composer popover
+      // (single agent-request intent — no picker).
       fireEvent.click(block!);
       await waitFor(() => {
-        expect(!!screen.getByText(/Annotating:/)).toBe(true);
+        expect(!!document.querySelector('[data-annotation-ui="composer-popover"]')).toBe(true);
       });
-      fireEvent.change(screen.getByPlaceholderText("Add an annotation..."), {
-        target: { value: "Live smoke annotation." },
-      });
-      fireEvent.click(screen.getByRole("button", { name: /Post annotation/ }));
+      fireEvent.change(
+        screen.getByPlaceholderText("Describe what you want an agent to do..."),
+        { target: { value: "Live smoke annotation." } },
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Annotate" }));
       await waitFor(
         () => {
-          expect(!!screen.queryByText(/Annotating:/)).toBe(false);
+          expect(!!document.querySelector('[data-annotation-ui="composer-popover"]')).toBe(false);
           expect(!!screen.getByText("Live smoke annotation.")).toBe(true);
         },
         { timeout: 10000 },

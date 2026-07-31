@@ -58,6 +58,7 @@ const BUNDLES: Array<[string, string]> = [
   ["40-locked", "Locked"],
   ["50-annotations", "Annotations"],
   ["55-hover", "Hover"],
+  ["56-range", "Range"],
   ["60-live", "Live"],
   ["65-autosave", "Autosave"],
   ["70-edit", "Edit"],
@@ -226,12 +227,12 @@ describe("workbench shell", () => {
     expect(!!document.querySelector('[data-doc-editor="true"]')).toBe(false);
     expect(saveStateAttr()).toBe(null);
     // The annotate targeting layer is read-only-hidden too: hovering a block
-    // produces no outline and no chip.
+    // produces no ring and no chip.
     const block = document.querySelector('[data-block-id="para-1"]');
     expect(block).toBeTruthy();
     fireEvent.mouseMove(block!);
-    expect(block!.classList.contains("docs-target-hovered")).toBe(false);
-    expect(!!document.querySelector("[data-docs-target-overlay-label]")).toBe(false);
+    expect(!!document.querySelector('[data-annotation-ui="hover-ring"]')).toBe(false);
+    expect(!!document.querySelector("[data-annotation-chip]")).toBe(false);
   });
 });
 
@@ -524,7 +525,14 @@ describe("page title rename", () => {
 });
 
 describe("annotate mode", () => {
-  it("creates an annotation against a clicked block and resolves it", async () => {
+  // The annotate UX standard (shared @codecaine-ai/annotations targeting):
+  // click pins the block and opens the ANCHORED composer popover next to it
+  // (no side-panel composer, no intent picker — every annotation is an agent
+  // request); the side pane is the list-only thread view.
+  const composerSelector = '[data-annotation-ui="composer-popover"]';
+  const composerPlaceholder = "Describe what you want an agent to do...";
+
+  it("creates an agent-request annotation against a clicked block and resolves it", async () => {
     renderDocPage("50-annotations");
     await waitFor(() => {
       expect(screen.getByText("Hello from Annotations")).toBeTruthy();
@@ -534,24 +542,26 @@ describe("annotate mode", () => {
     // also reads "Annotations" since the R2-D11 page-title furniture.
     expect(screen.getByRole("heading", { name: "Annotations", level: 2 })).toBeTruthy();
 
-    // Click the paragraph block -> composer opens against it.
+    // Click the paragraph block -> the anchored composer popover opens.
     const block = document.querySelector('[data-block-id="para-1"]');
     expect(block).toBeTruthy();
     fireEvent.click(block!);
     await waitFor(() => {
-      expect(screen.getByText(/Annotating:/)).toBeTruthy();
+      expect(!!document.querySelector(composerSelector)).toBe(true);
     });
+    // Single fixed intent — no picker buttons render in the popover.
+    expect(!!document.querySelector("[data-annotation-composer-intent]")).toBe(false);
 
-    fireEvent.change(screen.getByPlaceholderText("Add an annotation..."), {
+    fireEvent.change(screen.getByPlaceholderText(composerPlaceholder), {
       target: { value: "Tighten this paragraph." },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Post annotation/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Annotate" }));
 
-    // Successful post closes the composer and lists the annotation. (Boolean
+    // Successful post closes the popover and lists the annotation. (Boolean
     // coercion keeps failure output small — element dumps here are huge.)
     await waitFor(
       () => {
-        expect(!!screen.queryByText(/Annotating:/)).toBe(false);
+        expect(!!document.querySelector(composerSelector)).toBe(false);
         expect(!!screen.getByText("Tighten this paragraph.")).toBe(true);
       },
       { timeout: 5000 },
@@ -559,9 +569,11 @@ describe("annotate mode", () => {
     // "1 open" renders in both the pane header and the target group badge.
     expect(screen.getAllByText("1 open").length).toBeGreaterThanOrEqual(1);
 
-    // Persisted to the bundle's annotations sidecar.
+    // Persisted to the bundle's annotations sidecar — as an agent request
+    // (the annotate flow has no note intent anymore).
     const annotationsRaw = await readFile(join(docsRoot, "50-annotations", "annotations.json"), "utf8");
     expect(annotationsRaw).toContain("Tighten this paragraph.");
+    expect(annotationsRaw).toContain('"intent": "agent-request"');
 
     fireEvent.click(screen.getByRole("button", { name: /Resolve/ }));
     await waitFor(
@@ -574,7 +586,7 @@ describe("annotate mode", () => {
     expect(resolvedRaw).toContain('"resolved"');
   });
 
-  it("hover-targets a block (outline + block type chip) and selecting via the layer opens the composer", async () => {
+  it("hover-targets a block (glide ring + block type chip) and clicking opens the anchored composer", async () => {
     renderDocPage("55-hover");
     await waitFor(() => {
       expect(screen.getByText("Hello from Hover")).toBeTruthy();
@@ -584,54 +596,130 @@ describe("annotate mode", () => {
     const block = document.querySelector('[data-block-id="para-1"]');
     expect(block).toBeTruthy();
 
-    // Hover: outline class on the block wrapper + floating chip naming the
-    // block type (from the block registry descriptor) and the block text.
+    // Hover: dotted glide ring + floating chip naming the block type (from
+    // the block registry descriptor) and the block text.
     fireEvent.mouseMove(block!);
-    expect(block!.classList.contains("docs-target-hovered")).toBe(true);
-    expect(!!document.querySelector('[data-docs-target-overlay="hover"]')).toBe(true);
-    const chip = document.querySelector('[data-docs-target-overlay-label="hover"]');
+    expect(!!document.querySelector('[data-annotation-ui="hover-ring"]')).toBe(true);
+    const chip = document.querySelector('[data-annotation-ui="hover-chip"]');
     expect(chip?.textContent).toBe("Paragraph: Hello from Hover");
 
-    // Selecting through the layer opens the composer against that target
-    // (real block id, block type-labelled) and draws the selected ring.
+    // Clicking pins the target: the anchored popover opens with the same
+    // descriptor label in its header, the selected ring draws, and the
+    // hover affordance stands down while the popover is open.
     fireEvent.click(block!);
     await waitFor(() => {
-      expect(screen.getByText("Annotating: Paragraph: Hello from Hover")).toBeTruthy();
+      expect(!!document.querySelector(composerSelector)).toBe(true);
     });
-    expect(!!document.querySelector('[data-docs-target-overlay="selected"]')).toBe(true);
     expect(
-      document.querySelector('[data-docs-target-overlay-label="selected"]')?.textContent,
-    ).toBe("Paragraph");
+      document.querySelector("[data-annotation-composer-label]")?.textContent,
+    ).toBe("Paragraph: Hello from Hover");
+    expect(!!document.querySelector('[data-annotation-ui="selected-ring"]')).toBe(true);
+    expect(!!document.querySelector('[data-annotation-ui="hover-ring"]')).toBe(false);
 
-    // Composer cancel clears the controlled selection -> ring disappears.
+    // Popover cancel clears the pinned selection -> popover and ring gone.
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     await waitFor(() => {
-      expect(!!screen.queryByText(/Annotating:/)).toBe(false);
-      expect(!!document.querySelector('[data-docs-target-overlay="selected"]')).toBe(false);
+      expect(!!document.querySelector(composerSelector)).toBe(false);
+      expect(!!document.querySelector('[data-annotation-ui="selected-ring"]')).toBe(false);
     });
 
-    // The layer-selected target round-trips through the annotation store: post
-    // an annotation and it lands against the clicked block id.
+    // The pinned target round-trips through the annotation store: post an
+    // annotation and it lands against the clicked block id.
     fireEvent.click(block!);
     await waitFor(() => {
-      expect(screen.getByText(/Annotating:/)).toBeTruthy();
+      expect(!!document.querySelector(composerSelector)).toBe(true);
     });
-    fireEvent.change(screen.getByPlaceholderText("Add an annotation..."), {
+    fireEvent.change(screen.getByPlaceholderText(composerPlaceholder), {
       target: { value: "Layer-selected annotation." },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Post annotation/ }));
-    // Wait for the composer to CLOSE (not just for the text — the textarea's
-    // own content matches it immediately): a closed composer means the POST
+    fireEvent.click(screen.getByRole("button", { name: "Annotate" }));
+    // Wait for the popover to CLOSE (not just for the text — the textarea's
+    // own content matches it immediately): a closed popover means the POST
     // round-tripped and the sidecar write is on disk.
     await waitFor(
       () => {
-        expect(!!screen.queryByText(/Annotating:/)).toBe(false);
+        expect(!!document.querySelector(composerSelector)).toBe(false);
         expect(!!screen.getByText("Layer-selected annotation.")).toBe(true);
       },
       { timeout: 5000 },
     );
     const annotationsRaw = await readFile(join(docsRoot, "55-hover", "annotations.json"), "utf8");
     expect(annotationsRaw).toContain('"blockId": "para-1"');
+  });
+
+  it("Cmd+drag text selection pins a text-range target and annotates it", async () => {
+    renderDocPage("56-range");
+    await waitFor(() => {
+      expect(screen.getByText("Hello from Range")).toBeTruthy();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Annotate mode" }));
+
+    const block = document.querySelector('[data-block-id="para-1"]') as HTMLElement;
+    expect(block).toBeTruthy();
+
+    // Stage the native selection a Cmd+drag would leave ("Hello"), then
+    // release with the modifier held — the meta-gated range flow fires.
+    const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+    const textNode = walker.nextNode();
+    expect(textNode?.textContent).toContain("Hello from Range");
+    const range = document.createRange();
+    range.setStart(textNode!, 0);
+    range.setEnd(textNode!, 5);
+    const domSelection = window.getSelection()!;
+    domSelection.removeAllRanges();
+    domSelection.addRange(range);
+    fireEvent.mouseUp(block, { metaKey: true });
+
+    await waitFor(() => {
+      expect(!!document.querySelector(composerSelector)).toBe(true);
+    });
+    // The popover header labels the quoted text.
+    expect(
+      document.querySelector("[data-annotation-composer-label]")?.textContent,
+    ).toBe('Text "Hello"');
+
+    fireEvent.change(screen.getByPlaceholderText(composerPlaceholder), {
+      target: { value: "Reword this phrase." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Annotate" }));
+    await waitFor(
+      () => {
+        expect(!!document.querySelector(composerSelector)).toBe(false);
+        expect(!!screen.getByText("Reword this phrase.")).toBe(true);
+      },
+      { timeout: 5000 },
+    );
+
+    // Persisted with the documented offset convention: offsets index the
+    // block element's rendered textContent, end exclusive, quote exact.
+    const annotationsRaw = await readFile(join(docsRoot, "56-range", "annotations.json"), "utf8");
+    expect(annotationsRaw).toContain('"kind": "text-range"');
+    expect(annotationsRaw).toContain('"blockId": "para-1"');
+    expect(annotationsRaw).toContain('"start": 0');
+    expect(annotationsRaw).toContain('"end": 5');
+    expect(annotationsRaw).toContain('"quote": "Hello"');
+  });
+
+  it("an unmodified release with a text selection does not pin a range target", async () => {
+    renderDocPage("55-hover");
+    await waitFor(() => {
+      expect(screen.getByText("Hello from Hover")).toBeTruthy();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Annotate mode" }));
+
+    const block = document.querySelector('[data-block-id="para-1"]') as HTMLElement;
+    const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+    const textNode = walker.nextNode();
+    const range = document.createRange();
+    range.setStart(textNode!, 0);
+    range.setEnd(textNode!, 5);
+    const domSelection = window.getSelection()!;
+    domSelection.removeAllRanges();
+    domSelection.addRange(range);
+    fireEvent.mouseUp(block); // no Cmd/Ctrl — the selection is ignored
+
+    expect(!!document.querySelector(composerSelector)).toBe(false);
+    domSelection.removeAllRanges();
   });
 });
 

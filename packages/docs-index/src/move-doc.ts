@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import type { Database } from "bun:sqlite";
 import type { DocDocument } from "@codecaine-ai/docs-model/doc-schema";
 import type { DocOp } from "@codecaine-ai/docs-model/doc-ops";
-import type { InteractiveCanvasDocument } from "@codecaine-ai/canvas/schema";
+import type { CanvasDocumentWithLinks } from "./canvas-links";
 import {
   extractCanvasRefs,
   extractDocRefs,
@@ -59,12 +59,12 @@ export type ApplyDocOpsFn = (
 export type LoadCanvasFn = (
   docsRoot: string,
   canvasRelPath: string,
-) => Promise<{ ok: true; canvas: InteractiveCanvasDocument } | { ok: false; reason: string }>;
+) => Promise<{ ok: true; canvas: CanvasDocumentWithLinks } | { ok: false; reason: string }>;
 
 export type SaveCanvasFn = (
   docsRoot: string,
   canvasRelPath: string,
-  canvas: InteractiveCanvasDocument,
+  canvas: CanvasDocumentWithLinks,
 ) => Promise<{ ok: true } | { ok: false; reason: string }>;
 
 /** True when `sourcePath` (an index row's source_path) names a canvas sidecar. */
@@ -123,10 +123,10 @@ function buildDocRewriteOps(doc: DocDocument, fromPath: string, toPath: string):
 
 /** Rewrites every canvas link whose target tolerantly matches `fromPath`. Mutates a shallow copy. */
 function buildCanvasRewrite(
-  canvas: InteractiveCanvasDocument,
+  canvas: CanvasDocumentWithLinks,
   fromPath: string,
   toPath: string,
-): { changed: boolean; canvas: InteractiveCanvasDocument } {
+): { changed: boolean; canvas: CanvasDocumentWithLinks } {
   let changed = false;
   const links = (canvas.links ?? []).map((link) => {
     if (link.target.kind !== "doc" || !sameDocRef(link.target.path, fromPath)) return link;

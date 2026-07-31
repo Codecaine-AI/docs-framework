@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import { cleanup, fireEvent, render, within } from "@testing-library/react";
-import { syntheticInteractiveCanvas } from "@codecaine-ai/canvas";
+import { syntheticInteractiveCanvas } from "../synthetic-canvas";
 
 import { StandaloneCanvasEmbed } from "../pages/CanvasEmbed";
 
@@ -125,8 +125,8 @@ describe("StandaloneCanvasEmbed loaded canvases", () => {
     expect(queryByText("Interactive Canvas")).toBeNull();
     const inlineViewerSection = inertPreview?.querySelector('[data-mdx-block="Canvas"]');
     expect(inlineViewerSection).toBeTruthy();
-    expect(inlineViewerSection?.getAttribute("data-canvas-interactive")).toBeNull();
-    expect(inertPreview?.querySelector("[data-zoom-controls]")).toBeNull();
+    expect(inlineViewerSection?.getAttribute("data-canvas-viewer-interactive")).toBeNull();
+    expect(inertPreview?.querySelector("[data-canvas-viewer-controls]")).toBeNull();
     // The embed supplies the single rounded border around the viewer.
     const previewFrame = inlineViewerSection?.parentElement;
     expect(previewFrame?.classList.contains("rounded-md")).toBe(true);
@@ -141,9 +141,9 @@ describe("StandaloneCanvasEmbed loaded canvases", () => {
     expect(within(dialog).getByText("Canvas viewer")).toBeTruthy();
     expect(within(dialog).queryByText("Interactive Canvas")).toBeNull();
     expect(
-      dialog.querySelector('[data-canvas-interactive="true"]'),
+      dialog.querySelector('[data-canvas-viewer-interactive="true"]'),
     ).toBeTruthy();
-    expect(dialog.querySelector("[data-zoom-controls]")).toBeTruthy();
+    expect(dialog.querySelector("[data-canvas-viewer-controls]")).toBeTruthy();
     expect(within(dialog).getByRole("button", { name: /User brief/i })).toBeTruthy();
     expect(document.body.style.overflow).toBe("hidden");
     expect(document.querySelector("iframe")).toBeNull();
@@ -170,8 +170,8 @@ describe("StandaloneCanvasEmbed loaded canvases", () => {
     // Annotation targeting stays the bare static viewer — no framing, no
     // interactive pan/zoom — with object clicks live.
     expect(queryByText("Interactive Canvas")).toBeNull();
-    expect(container.querySelector('[data-canvas-interactive="true"]')).toBeNull();
-    expect(container.querySelector("[data-zoom-controls]")).toBeNull();
+    expect(container.querySelector('[data-canvas-viewer-interactive="true"]')).toBeNull();
+    expect(container.querySelector("[data-canvas-viewer-controls]")).toBeNull();
     expect(
       queryByRole("button", {
         name: "Open Synthetic Interview Flow in full-screen viewer",
