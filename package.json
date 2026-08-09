@@ -12,8 +12,8 @@
     "packages/docs-viewer",
     "packages/docs-workbench",
     "external/annotations",
-    "external/canvas/packages/*",
-    "external/sequence/packages/*"
+    "external/canvas/packages/canvas",
+    "external/sequence/packages/sequence"
   ],
   "scripts": {
     "docs": "bun packages/docs-cli/src/index.ts",
