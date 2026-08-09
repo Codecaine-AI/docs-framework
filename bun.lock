@@ -14,6 +14,34 @@
         "typescript": "^5",
       },
     },
+    "external/annotations": {
+      "name": "@codecaine-ai/annotations",
+      "version": "0.1.0",
+      "dependencies": {
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "lucide-react": "^0.563.0",
+        "tailwind-merge": "^3.4.0",
+      },
+      "devDependencies": {
+        "@happy-dom/global-registrator": "^20.9.0",
+        "@testing-library/dom": "^10.4.1",
+        "@testing-library/react": "^16.3.2",
+        "@types/bun": "latest",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "happy-dom": "^20.9.0",
+        "react": "^19",
+        "react-dom": "^19",
+        "typescript": "^5",
+      },
+      "peerDependencies": {
+        "react": "^19",
+      },
+      "optionalPeers": [
+        "react",
+      ],
+    },
     "external/canvas/packages/canvas": {
       "name": "@codecaine-ai/canvas",
       "version": "0.1.0",
@@ -133,7 +161,7 @@
       "name": "@codecaine-ai/docs-model",
       "version": "0.1.0",
       "dependencies": {
-        "@codecaine-ai/annotations": "link:@codecaine-ai/annotations",
+        "@codecaine-ai/annotations": "workspace:*",
         "@codecaine-ai/canvas": "workspace:*",
         "@codecaine-ai/sequence": "workspace:*",
         "@sinclair/typebox": "^0.34",
@@ -162,7 +190,7 @@
       "name": "@codecaine-ai/docs-viewer",
       "version": "0.1.0",
       "dependencies": {
-        "@codecaine-ai/annotations": "link:@codecaine-ai/annotations",
+        "@codecaine-ai/annotations": "workspace:*",
         "@codecaine-ai/docs-model": "workspace:*",
         "@floating-ui/react": "^0.27.19",
         "@tiptap/core": "^3.27.1",
@@ -200,7 +228,7 @@
       "name": "@codecaine-ai/docs-workbench",
       "version": "0.1.0",
       "dependencies": {
-        "@codecaine-ai/annotations": "link:@codecaine-ai/annotations",
+        "@codecaine-ai/annotations": "workspace:*",
         "@codecaine-ai/canvas": "workspace:*",
         "@codecaine-ai/docs-index": "workspace:*",
         "@codecaine-ai/docs-model": "workspace:*",
@@ -278,7 +306,7 @@
 
     "@borewit/text-codec": ["@borewit/text-codec@0.2.2", "", {}, "sha512-DDaRehssg1aNrH4+2hnj1B7vnUGEjU6OIlyRdkMd0aUdIUvKXrJfXsy8LVtXAy7DRvYVluWbMspsRhz2lcW0mQ=="],
 
-    "@codecaine-ai/annotations": ["@codecaine-ai/annotations@link:@codecaine-ai/annotations", {}],
+    "@codecaine-ai/annotations": ["@codecaine-ai/annotations@workspace:external/annotations"],
 
     "@codecaine-ai/canvas": ["@codecaine-ai/canvas@workspace:external/canvas/packages/canvas"],
 

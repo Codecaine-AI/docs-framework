@@ -4,3 +4,6 @@
 [submodule "external/sequence"]
 	path = external/sequence
 	url = https://github.com/Codecaine-AI/sequence.git
+[submodule "external/annotations"]
+	path = external/annotations
+	url = https://github.com/Codecaine-AI/annotations.git

@@ -11,6 +11,7 @@
     "packages/docs-server",
     "packages/docs-viewer",
     "packages/docs-workbench",
+    "external/annotations",
     "external/canvas/packages/*",
     "external/sequence/packages/*"
   ],
